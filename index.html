@@ -7,13 +7,14 @@
   <!-- React & ReactDOM -->
   <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
   <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-  <!-- Babel for in-browser JSX compilation -->
-  <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+  <!-- Modern Babel for in-browser JSX compilation -->
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 </head>
 <body>
   <div id="root"></div>
 
-  <script type="text/babel">
+  <!-- Note the data-presets attribute added here -->
+  <script type="text/babel" data-presets="react,env">
     const { useState, useEffect, useMemo, useCallback } = React;
 
     /* ============================================================================
@@ -74,9 +75,6 @@
 
     /* ---------------------------- schedule generation -------------------------- */
 
-    // Standard circle-method round robin. Returns array of "rounds"; each round is
-    // an array of [teamIdHome, teamIdAway] pairs. If odd number of teams, a "BYE"
-    // placeholder absorbs one slot per round.
     function generateRoundRobin(teamIds) {
       let teams = [...teamIds];
       if (teams.length < 2) return [];
@@ -104,7 +102,6 @@
       return schedule;
     }
 
-    // Build the full season plan
     function buildSeasonPlan(league) {
       const teamIds = league.teams.map((t) => t.id);
       const baseRounds = generateRoundRobin(teamIds);
