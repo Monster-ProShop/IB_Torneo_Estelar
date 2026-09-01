@@ -360,7 +360,7 @@ function maxHandicapFor(category, gender){
 }
 function handicapFromAverage(category, gender, average){
   const max = maxHandicapFor(category, gender);
-  const raw = 0.9 * (220 - average);
+  const raw = 0.9 * (225 - average);
   return Math.max(0, Math.min(max, Math.round(raw)));
 }
 
