@@ -1,1580 +1,1409 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Torneo Estelar - Bowling League Manager</title>
-  <!-- React & ReactDOM -->
-  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-  <!-- Modern Babel for in-browser JSX compilation -->
-  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Torneo Estelar · Liga de Boliche</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+<style>
+:root{
+  --bg:#0B0E14;
+  --bg-elev:#12161F;
+  --bg-card:#161B26;
+  --border:rgba(255,255,255,0.08);
+  --text:#F4F6FB;
+  --text-muted:#8D96AA;
+  --pink:#FF3D7F;
+  --cyan:#17E9DD;
+  --gold:#FFC145;
+  --silver:#C9D3DE;
+  --bronze:#CD7F46;
+  --nickel:#8FA3B0;
+  --good:#3ED598;
+  --bad:#FF5C6C;
+  --radius:10px;
+  --shadow:0 8px 24px rgba(0,0,0,0.35);
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:'Inter',sans-serif;
+  min-height:100vh;
+}
+h1,h2,h3,h4,.display{
+  font-family:'Rajdhani',sans-serif;
+  font-weight:700;
+  letter-spacing:0.02em;
+  margin:0;
+}
+a{color:var(--cyan);}
+.wrap{max-width:1180px;margin:0 auto;padding:0 20px 60px;}
+header.top{
+  display:flex;align-items:center;gap:16px;
+  padding:18px 20px;border-bottom:1px solid var(--border);
+  background:linear-gradient(180deg,#0D1119,#0B0E14 90%);
+  position:sticky;top:0;z-index:50;
+}
+.logo-badge{width:52px;height:52px;flex:none;}
+.brandtext{display:flex;flex-direction:column;line-height:1.05;}
+.brandtext .name{font-size:22px;font-weight:700;color:var(--text);}
+.brandtext .sub{font-size:11px;color:var(--text-muted);letter-spacing:0.08em;}
+nav.tabs{display:flex;gap:4px;margin-left:auto;flex-wrap:wrap;}
+nav.tabs button{
+  background:transparent;border:1px solid transparent;color:var(--text-muted);
+  padding:9px 14px;border-radius:8px;cursor:pointer;font-family:'Inter';
+  font-size:13.5px;font-weight:600;transition:background .15s,color .15s;
+}
+nav.tabs button:hover{background:var(--bg-elev);color:var(--text);}
+nav.tabs button.active{background:var(--bg-card);color:var(--cyan);border-color:var(--border);}
+main{padding-top:22px;}
+.view{display:none;}
+.view.active{display:block;animation:fadein .18s ease;}
+@keyframes fadein{from{opacity:0;transform:translateY(3px);}to{opacity:1;transform:none;}}
+.card{
+  background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);
+  padding:20px;margin-bottom:18px;
+}
+.card h2{font-size:19px;margin-bottom:4px;}
+.card .hint{color:var(--text-muted);font-size:12.5px;margin-bottom:14px;}
+.grid{display:grid;gap:14px;}
+.grid.cols-2{grid-template-columns:1fr 1fr;}
+.grid.cols-3{grid-template-columns:1fr 1fr 1fr;}
+.grid.cols-4{grid-template-columns:repeat(4,1fr);}
+@media(max-width:760px){.grid.cols-2,.grid.cols-3,.grid.cols-4{grid-template-columns:1fr;}}
+label{display:block;font-size:12px;color:var(--text-muted);margin-bottom:5px;font-weight:600;text-transform:none;}
+input[type=text],input[type=number],select{
+  width:100%;background:var(--bg-elev);border:1px solid var(--border);color:var(--text);
+  padding:9px 10px;border-radius:7px;font-size:14px;font-family:'Inter';
+}
+input[type=text]:focus,input[type=number]:focus,select:focus{outline:2px solid var(--cyan);outline-offset:1px;}
+input[type=checkbox]{width:16px;height:16px;accent-color:var(--cyan);}
+.field{margin-bottom:12px;}
+.btn{
+  background:var(--cyan);color:#04211f;border:none;padding:10px 16px;border-radius:8px;
+  font-weight:700;font-size:13.5px;cursor:pointer;font-family:'Inter';
+}
+.btn:hover{filter:brightness(1.08);}
+.btn.secondary{background:transparent;border:1px solid var(--border);color:var(--text);}
+.btn.pink{background:var(--pink);color:#2a0011;}
+.btn.gold{background:var(--gold);color:#2a1c00;}
+.btn.danger{background:var(--bad);color:#2a0000;}
+.btn.small{padding:6px 10px;font-size:12px;}
+.btn:disabled{opacity:.4;cursor:not-allowed;}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
+.row.between{justify-content:space-between;}
+table{width:100%;border-collapse:collapse;font-size:13px;}
+th,td{padding:7px 8px;text-align:left;border-bottom:1px solid var(--border);}
+th{color:var(--text-muted);font-size:11px;text-transform:uppercase;letter-spacing:.04em;font-weight:700;}
+tr:hover td{background:rgba(255,255,255,0.02);}
+.pill{display:inline-block;padding:2px 9px;border-radius:20px;font-size:11px;font-weight:700;}
+.pill.oro{background:rgba(255,193,69,.15);color:var(--gold);}
+.pill.plata{background:rgba(201,211,222,.15);color:var(--silver);}
+.pill.bronze{background:rgba(205,127,70,.15);color:var(--bronze);}
+.pill.niquel{background:rgba(143,163,176,.15);color:var(--nickel);}
+.muted{color:var(--text-muted);}
+.small{font-size:12px;}
+.dim{opacity:.45;font-style:italic;}
+.empty{color:var(--text-muted);font-size:13px;padding:14px 0;text-align:center;}
+.tag{font-size:10.5px;padding:2px 7px;border-radius:5px;background:var(--bg-elev);color:var(--text-muted);border:1px solid var(--border);}
+.section-title{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);margin:20px 0 10px;font-weight:700;}
+.bowler-row{display:grid;grid-template-columns:1.4fr .8fr .5fr .9fr .5fr auto;gap:8px;align-items:end;padding:10px 0;border-bottom:1px dashed var(--border);}
+@media(max-width:900px){.bowler-row{grid-template-columns:1fr 1fr;}}
+.score-grid{display:grid;grid-template-columns:1.6fr repeat(3,70px) 90px 90px;gap:6px;align-items:center;padding:6px 0;}
+.score-grid input{padding:6px;text-align:center;}
+.matchcard{border:1px solid var(--border);border-radius:8px;padding:14px;margin-bottom:14px;background:var(--bg-elev);}
+.matchcard h4{font-size:15px;margin-bottom:2px;}
+.lanes-tag{font-size:11px;color:var(--cyan);font-weight:700;}
+.honor{border:1px solid var(--gold);background:rgba(255,193,69,.06);border-radius:8px;padding:12px 14px;margin-bottom:10px;}
+.honor b{color:var(--gold);}
+.record-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;}
+@media(max-width:900px){.record-grid{grid-template-columns:1fr 1fr;}}
+.record-box{background:var(--bg-elev);border:1px solid var(--border);border-radius:8px;padding:12px 14px;}
+.record-box .val{font-family:'Rajdhani';font-size:26px;font-weight:700;color:var(--gold);}
+.record-box .lbl{font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.04em;}
+.record-box .who{font-size:12.5px;margin-top:2px;}
+.qualify-split{margin:14px 0 4px;padding-top:8px;border-top:1px dashed var(--bad);}
+.qualify-split span{font-size:11px;color:var(--bad);text-transform:uppercase;letter-spacing:.05em;}
+.notice{background:rgba(23,233,221,.08);border:1px solid rgba(23,233,221,.35);border-radius:8px;padding:10px 14px;font-size:13px;margin-bottom:14px;}
+.warn{background:rgba(255,92,108,.09);border:1px solid rgba(255,92,108,.4);border-radius:8px;padding:10px 14px;font-size:13px;margin-bottom:14px;}
+footer.app{text-align:center;color:var(--text-muted);font-size:11.5px;padding:30px 0 10px;}
+.file-actions{display:flex;gap:10px;flex-wrap:wrap;}
+.pos-round-row{display:grid;grid-template-columns:1fr 1fr auto;gap:8px;align-items:end;margin-bottom:8px;}
+.stepper{display:flex;gap:6px;margin-bottom:18px;}
+.stepper div{flex:1;height:4px;border-radius:3px;background:var(--border);}
+.stepper div.done{background:var(--cyan);}
+::-webkit-scrollbar{width:9px;height:9px;}
+::-webkit-scrollbar-thumb{background:#232938;border-radius:6px;}
+</style>
 </head>
 <body>
-  <div id="root"></div>
 
-  <!-- Note the data-presets attribute added here -->
-  <script type="text/babel" data-presets="react,env">
-    const { useState, useEffect, useMemo, useCallback } = React;
+<header class="top">
+  <svg class="logo-badge" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="50" cy="50" r="47" fill="#12161F" stroke="url(#gradRing)" stroke-width="3"/>
+    <defs>
+      <linearGradient id="gradRing" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stop-color="#FF3D7F"/>
+        <stop offset="1" stop-color="#17E9DD"/>
+      </linearGradient>
+    </defs>
+    <path d="M50 20 L55 36 L72 36 L58 46 L63 62 L50 52 L37 62 L42 46 L28 36 L45 36 Z" fill="#FFC145"/>
+    <ellipse cx="50" cy="70" rx="9" ry="15" fill="#F4F6FB"/>
+    <circle cx="47" cy="63" r="1.6" fill="#12161F"/>
+    <circle cx="53" cy="63" r="1.6" fill="#12161F"/>
+    <circle cx="50" cy="67" r="1.6" fill="#12161F"/>
+  </svg>
+  <div class="brandtext">
+    <div class="name">TORNEO ESTELAR</div>
+    <div class="sub">GESTIÓN DE LIGA · BOLICHE</div>
+  </div>
+  <nav class="tabs" id="tabsNav">
+    <button data-tab="setup">Configuración</button>
+    <button data-tab="roster">Equipos y Jugadores</button>
+    <button data-tab="schedule">Calendario</button>
+    <button data-tab="scores">Puntajes</button>
+    <button data-tab="standings">Tabla de Posiciones</button>
+    <button data-tab="data">Datos / Temporada</button>
+  </nav>
+</header>
 
-    /* ============================================================================
-       TORNEO ESTELAR — Bowling League Manager
-       Single-file React app. Data persists via localStorage.
-       ============================================================================ */
+<main class="wrap">
 
-    /* ---------------------------- constants ---------------------------------- */
+  <!-- SETUP -->
+  <section class="view" id="view-setup">
+    <div class="card">
+      <h2>Configuración de la Liga</h2>
+      <div class="hint">Define la estructura de la temporada. Puedes editar el número de equipos y sesiones más adelante desde "Datos / Temporada", pero cambiar estos valores luego de generar el calendario requerirá regenerarlo.</div>
+      <div class="grid cols-4">
+        <div class="field"><label>Nombre de la liga</label><input type="text" id="cfgLeagueName"></div>
+        <div class="field"><label># de Equipos</label><input type="number" id="cfgNumTeams" min="2" step="1"></div>
+        <div class="field"><label>Bowlers activos por partido (line-up)</label><input type="number" id="cfgTeamSize" min="1" max="8" step="1"></div>
+        <div class="field"><label># de Semanas (sesiones)</label><input type="number" id="cfgNumWeeks" min="1" step="1"></div>
+      </div>
+      <div class="section-title">Rondas de Posiciones</div>
+      <div class="hint">Indica en qué semana(s) se jugará una ronda de posiciones (según la clasificación acumulada) en vez del round robin normal, y si será dentro de cada grupo o entre grupos.</div>
+      <div id="posRoundsList"></div>
+      <button class="btn secondary small" id="addPosRoundBtn" type="button">+ Agregar ronda de posiciones</button>
 
-    const CATEGORIES = ["Oro", "Plata", "Bronze", "Niquel"];
-    const GROUPS = ["Oro", "Plata"];
-    const BLIND_SCORE = 190;
-    const STORAGE_KEY = "torneo-estelar:league:v1";
+      <div class="section-title">Puntaje de Blind</div>
+      <div class="grid cols-2">
+        <div class="field"><label>Valor del Blind (escrito con "b" o "B")</label><input type="number" id="cfgBlindScore"></div>
+      </div>
+      <div class="row" style="margin-top:10px">
+        <button class="btn" id="saveConfigBtn" type="button">Guardar configuración</button>
+        <span class="muted small" id="cfgSavedMsg"></span>
+      </div>
+    </div>
+  </section>
 
-    const CATEGORY_MAX = { Oro: 10, Plata: 20, Bronze: 30, Niquel: 40 };
-    function categoryMax(category, isWoman) {
-      if (category === "Niquel" && isWoman) return 50;
-      return CATEGORY_MAX[category] ?? 0;
-    }
-    function calcHandicapFromAverage(average, category, isWoman) {
-      if (average == null || Number.isNaN(average)) return 0;
-      const raw = Math.max(0, 220 - average) * 0.9;
-      const max = categoryMax(category, isWoman);
-      return Math.min(Math.floor(raw), max);
-    }
+  <!-- ROSTER -->
+  <section class="view" id="view-roster">
+    <div class="card">
+      <div class="row between">
+        <h2>Equipos</h2>
+        <button class="btn small" id="addTeamBtn" type="button">+ Nuevo equipo</button>
+      </div>
+      <div class="hint">Cada equipo pertenece al grupo Oro o Plata y puede registrar hasta 8 bowlers.</div>
+      <div id="teamsContainer"></div>
+    </div>
+  </section>
 
-    function uid(prefix = "id") {
-      return `${prefix}_${Math.random().toString(36).slice(2, 9)}_${Date.now().toString(36)}`;
-    }
-
-    /* ---------------------------- storage helpers ------------------------------ */
-
-    async function loadLeague() {
-      try {
-        const res = localStorage.getItem(STORAGE_KEY);
-        if (!res) return null;
-        return JSON.parse(res);
-      } catch (e) {
-        return null;
-      }
-    }
-    async function saveLeague(league) {
-      try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(league));
-        return true;
-      } catch (e) {
-        console.error("Error guardando la liga", e);
-        return false;
-      }
-    }
-    async function deleteLeagueStorage() {
-      try {
-        localStorage.removeItem(STORAGE_KEY);
-      } catch (e) {
-        /* ignore */
-      }
-    }
-
-    /* ---------------------------- schedule generation -------------------------- */
-
-    function generateRoundRobin(teamIds) {
-      let teams = [...teamIds];
-      if (teams.length < 2) return [];
-      if (teams.length % 2 !== 0) teams.push("BYE");
-      const n = teams.length;
-      const rounds = n - 1;
-      const half = n / 2;
-      let arr = [...teams];
-      const schedule = [];
-      for (let r = 0; r < rounds; r++) {
-        const roundMatches = [];
-        for (let i = 0; i < half; i++) {
-          const home = arr[i];
-          const away = arr[n - 1 - i];
-          if (home !== "BYE" && away !== "BYE") {
-            roundMatches.push(r % 2 === 0 ? [home, away] : [away, home]);
-          }
-        }
-        schedule.push(roundMatches);
-        const fixed = arr[0];
-        const rest = arr.slice(1);
-        rest.unshift(rest.pop());
-        arr = [fixed, ...rest];
-      }
-      return schedule;
-    }
-
-    function buildSeasonPlan(league) {
-      const teamIds = league.teams.map((t) => t.id);
-      const baseRounds = generateRoundRobin(teamIds);
-      const plan = [];
-      let regularIdx = 0;
-      const positionsWeeks = new Map(league.positionsRounds.map((p) => [p.week, p.type]));
-      for (let week = 1; week <= league.sessionsCount; week++) {
-        if (positionsWeeks.has(week)) {
-          plan.push({ week, type: "positions", positionsType: positionsWeeks.get(week), pairs: null });
-        } else {
-          if (baseRounds.length === 0) {
-            plan.push({ week, type: "regular", pairs: [] });
-          } else {
-            const cycle = Math.floor(regularIdx / baseRounds.length);
-            const round = baseRounds[regularIdx % baseRounds.length];
-            const pairs = cycle % 2 === 0 ? round : round.map(([a, b]) => [b, a]);
-            plan.push({ week, type: "regular", pairs });
-            regularIdx++;
-          }
-        }
-      }
-      return plan;
-    }
-
-    function assignLanes(pairs, startLane = 1) {
-      return pairs.map((pair, i) => ({ pair, lanes: [startLane + i * 2, startLane + i * 2 + 1] }));
-    }
-
-    /* ---------------------------- bowler stat helpers --------------------------- */
-
-    function bowlerScratchGamesBefore(league, bowlerId, beforeWeek) {
-      const out = [];
-      const weeks = Object.keys(league.weeklyResults)
-        .map(Number)
-        .sort((a, b) => a - b);
-      for (const w of weeks) {
-        if (beforeWeek != null && w >= beforeWeek) continue;
-        const wr = league.weeklyResults[w];
-        for (const m of wr.matches) {
-          if (!m.saved) continue;
-          const line = m.lineup[bowlerId];
-          if (!line) continue;
-          line.forEach((s) => {
-            if (s !== "B" && s !== null && s !== undefined && s !== "") out.push(Number(s));
-          });
-        }
-      }
-      return out;
-    }
-
-    function bowlerHandicapForWeek(bowler, league, week) {
-      const prior = bowlerScratchGamesBefore(league, bowler.id, week);
-      const priorCount = prior.length;
-      const priorTotal = prior.reduce((a, b) => a + b, 0);
-      let baseAverage = null;
-      if (bowler.enteringAverage != null && bowler.enteringAverage !== "") {
-        baseAverage = priorCount < 9 ? Number(bowler.enteringAverage) : Math.floor(priorTotal / priorCount);
-      } else {
-        if (priorCount < 2) return 0;
-        baseAverage = Math.floor(priorTotal / priorCount);
-      }
-      return calcHandicapFromAverage(baseAverage, bowler.category, bowler.isWoman);
-    }
-
-    function bowlerCareerStats(bowler, league, uptoWeek) {
-      const games = bowlerScratchGamesBefore(league, bowler.id, uptoWeek != null ? uptoWeek + 1 : undefined);
-      const gamesPlayed = games.length;
-      const totalPins = games.reduce((a, b) => a + b, 0);
-      const average = gamesPlayed > 0 ? totalPins / gamesPlayed : null;
-      const bestGame = gamesPlayed > 0 ? Math.max(...games) : null;
-      return { gamesPlayed, totalPins, average, bestGame };
-    }
-
-    /* ---------------------------- match computations ---------------------------- */
-
-    function scoreValue(entry) {
-      if (entry === "B" || entry === "b") return { score: BLIND_SCORE, blind: true };
-      const n = Number(entry);
-      return { score: Number.isFinite(n) ? n : 0, blind: false };
-    }
-
-    function teamGameTotals(match, side) {
-      const teamId = side === "A" ? match.teamA : match.teamB;
-      const bowlerIds = Object.keys(match.lineup).filter((bid) => match.bowlerTeam[bid] === teamId);
-      const gameTotals = [0, 0, 0];
-      let anyBlind = false;
-      bowlerIds.forEach((bid) => {
-        const line = match.lineup[bid] || [];
-        const hcp = match.handicapUsed[bid] || 0;
-        line.forEach((entry, gi) => {
-          if (entry === "" || entry === null || entry === undefined) return;
-          const { score, blind } = scoreValue(entry);
-          if (blind) anyBlind = true;
-          gameTotals[gi] += score + (blind ? 0 : hcp);
-        });
-      });
-      const seriesTotal = gameTotals.reduce((a, b) => a + b, 0);
-      return { gameTotals, seriesTotal, anyBlind, bowlerIds };
-    }
-
-    function computeMatchPoints(match) {
-      const a = teamGameTotals(match, "A");
-      const b = teamGameTotals(match, "B");
-      const points = { A: 0, B: 0 };
-      for (let g = 0; g < 3; g++) {
-        if (a.gameTotals[g] > b.gameTotals[g]) points.A += 1;
-        else if (b.gameTotals[g] > a.gameTotals[g]) points.B += 1;
-        else {
-          points.A += 0.5;
-          points.B += 0.5;
-        }
-      }
-      if (a.seriesTotal > b.seriesTotal) points.A += 2;
-      else if (b.seriesTotal > a.seriesTotal) points.B += 2;
-      else {
-        points.A += 1;
-        points.B += 1;
-      }
-      if (!a.anyBlind) points.A += 1;
-      if (!b.anyBlind) points.B += 1;
-      if (match.prontoPago?.A) points.A += 1;
-      if (match.prontoPago?.B) points.B += 1;
-      if (match.uniforme?.A) points.A += 1;
-      if (match.uniforme?.B) points.B += 1;
-      return { points, totals: { A: a, B: b } };
-    }
-
-    /* ---------------------------- standings ------------------------------------- */
-
-    function computeTeamStandings(league) {
-      const byGroup = { Oro: [], Plata: [] };
-      const acc = {};
-      league.teams.forEach((t) => {
-        acc[t.id] = { teamId: t.id, name: t.name, group: t.group, points: 0, pinfall: 0, highGame: 0, possiblePoints: 0 };
-      });
-      Object.entries(league.weeklyResults).forEach(([week, wr]) => {
-        wr.matches.forEach((m) => {
-          if (!m.saved) return;
-          const { points, totals } = computeMatchPoints(m);
-          acc[m.teamA].points += points.A;
-          acc[m.teamB].points += points.B;
-          acc[m.teamA].pinfall += totals.A.seriesTotal;
-          acc[m.teamB].pinfall += totals.B.seriesTotal;
-          acc[m.teamA].highGame = Math.max(acc[m.teamA].highGame, ...totals.A.gameTotals);
-          acc[m.teamB].highGame = Math.max(acc[m.teamB].highGame, ...totals.B.gameTotals);
-          acc[m.teamA].possiblePoints += 8;
-          acc[m.teamB].possiblePoints += 8;
-        });
-      });
-      Object.values(acc).forEach((row) => {
-        byGroup[row.group]?.push(row);
-      });
-      GROUPS.forEach((g) => {
-        byGroup[g].sort((x, y) => y.points - x.points || y.pinfall - x.pinfall || y.highGame - x.highGame);
-      });
-      return byGroup;
-    }
-
-    const GAMES_PER_WEEK = 3;
-
-    function totalPossibleGamesForBowlerRange(league) {
-      return league.sessionsCount * GAMES_PER_WEEK;
-    }
-
-    function computeIndividualStandings(league, currentWeek) {
-      const totalPossible = totalPossibleGamesForBowlerRange(league);
-      const requiredGames = Math.ceil(totalPossible * 0.8);
-      const byCategory = {};
-      CATEGORIES.forEach((c) => (byCategory[c] = []));
-      league.bowlers.forEach((b) => {
-        const stats = bowlerCareerStats(b, league);
-        const remainingWeeks = Math.max(0, league.sessionsCount - currentWeek);
-        const maxPossible = stats.gamesPlayed + remainingWeeks * GAMES_PER_WEEK;
-        const eliminated = maxPossible < requiredGames;
-        byCategory[b.category]?.push({
-          bowlerId: b.id,
-          name: b.name,
-          teamId: b.teamId,
-          isWoman: b.isWoman,
-          gamesPlayed: stats.gamesPlayed,
-          average: stats.average,
-          bestGame: stats.bestGame,
-          qualifies: !eliminated,
-        });
-      });
-      CATEGORIES.forEach((c) => {
-        byCategory[c].sort((x, y) => {
-          if (x.qualifies !== y.qualifies) return x.qualifies ? -1 : 1;
-          const ax = x.average ?? -1;
-          const ay = y.average ?? -1;
-          return ay - ax;
-        });
-      });
-      return { byCategory, requiredGames, totalPossible };
-    }
-
-    function computeLeagueRecords(league) {
-      let highTeamGame = { value: 0 };
-      let highTeamSeries = { value: 0 };
-      let highIndGame = { value: 0 };
-      let highIndSeries = { value: 0 };
-      const scratch300 = [];
-      const scratch800 = [];
-      const teamsById = Object.fromEntries(league.teams.map((t) => [t.id, t]));
-      const bowlersById = Object.fromEntries(league.bowlers.map((b) => [b.id, b]));
-
-      Object.entries(league.weeklyResults).forEach(([week, wr]) => {
-        wr.matches.forEach((m) => {
-          if (!m.saved) return;
-          const a = teamGameTotals(m, "A");
-          const b = teamGameTotals(m, "B");
-          [
-            { side: "A", teamId: m.teamA, t: a },
-            { side: "B", teamId: m.teamB, t: b },
-          ].forEach(({ teamId, t }) => {
-            const maxG = Math.max(...t.gameTotals);
-            if (maxG > highTeamGame.value) highTeamGame = { value: maxG, teamId, week };
-            if (t.seriesTotal > highTeamSeries.value) highTeamSeries = { value: t.seriesTotal, teamId, week };
-          });
-          Object.keys(m.lineup).forEach((bid) => {
-            const line = m.lineup[bid] || [];
-            const hcp = m.handicapUsed[bid] || 0;
-            let scratchSeries = 0;
-            let hasBlind = false;
-            line.forEach((entry, gi) => {
-              if (entry === "" || entry == null) return;
-              const { score, blind } = scoreValue(entry);
-              if (blind) {
-                hasBlind = true;
-                return;
-              }
-              scratchSeries += score;
-              const gameWithHcp = score + hcp;
-              if (gameWithHcp > highIndGame.value) highIndGame = { value: gameWithHcp, bowlerId: bid, week, gi };
-              if (score === 300) scratch300.push({ bowlerId: bid, week, gi });
-            });
-            const seriesWithHcp = scratchSeries + hcp * line.filter((e) => e !== "B" && e !== "" && e != null).length;
-            if (!hasBlind && seriesWithHcp > highIndSeries.value) {
-              highIndSeries = { value: seriesWithHcp, bowlerId: bid, week };
-            }
-            if (!hasBlind && scratchSeries >= 800) scratch800.push({ bowlerId: bid, week, series: scratchSeries });
-          });
-        });
-      });
-
-      scratch300.sort((x, y) => x.week - y.week);
-      scratch800.sort((x, y) => x.week - y.week);
-
-      return {
-        highTeamGame: highTeamGame.value ? { ...highTeamGame, name: teamsById[highTeamGame.teamId]?.name } : null,
-        highTeamSeries: highTeamSeries.value ? { ...highTeamSeries, name: teamsById[highTeamSeries.teamId]?.name } : null,
-        highIndGame: highIndGame.value ? { ...highIndGame, name: bowlersById[highIndGame.bowlerId]?.name } : null,
-        highIndSeries: highIndSeries.value ? { ...highIndSeries, name: bowlersById[highIndSeries.bowlerId]?.name } : null,
-        scratch300: scratch300.map((r) => ({ ...r, name: bowlersById[r.bowlerId]?.name })),
-        scratch800: scratch800.map((r) => ({ ...r, name: bowlersById[r.bowlerId]?.name })),
-      };
-    }
-
-    /* ============================================================================
-       MAIN APP
-       ============================================================================ */
-
-    function App() {
-      const [league, setLeague] = useState(undefined);
-      const [tab, setTab] = useState("teams");
-      const [saveState, setSaveState] = useState("idle");
-
-      useEffect(() => {
-        (async () => {
-          const l = await loadLeague();
-          setLeague(l);
-        })();
-      }, []);
-
-      const persist = useCallback(async (next) => {
-        setLeague(next);
-        setSaveState("saving");
-        const ok = await saveLeague(next);
-        setSaveState(ok ? "saved" : "error");
-        setTimeout(() => setSaveState("idle"), 1500);
-      }, []);
-
-      if (league === undefined) {
-        return (
-          <div style={styles.loadingScreen}>
-            <StyleBlock />
-            <div style={styles.loadingLogo}>🎳</div>
-            <div style={{ color: TOKENS.textDim, fontFamily: TOKENS.fontBody }}>Cargando Torneo Estelar…</div>
-          </div>
-        );
-      }
-
-      if (!league || league.setupComplete !== true) {
-        return (
-          <div style={styles.appShell}>
-            <StyleBlock />
-            <SetupWizard existing={league} onComplete={persist} />
-          </div>
-        );
-      }
-
-      return (
-        <div style={styles.appShell}>
-          <StyleBlock />
-          <Header league={league} saveState={saveState} />
-          <div style={styles.body}>
-            <Sidebar tab={tab} setTab={setTab} league={league} />
-            <main style={styles.main}>
-              {tab === "teams" && <TeamsView league={league} onChange={persist} />}
-              {tab === "schedule" && <ScheduleView league={league} onChange={persist} />}
-              {tab === "entry" && <WeekEntryView league={league} onChange={persist} />}
-              {tab === "standings" && <StandingsView league={league} />}
-              {tab === "records" && <RecordsView league={league} />}
-              {tab === "data" && <DataView league={league} onChange={persist} />}
-            </main>
-          </div>
+  <!-- SCHEDULE -->
+  <section class="view" id="view-schedule">
+    <div class="card">
+      <div class="row between">
+        <h2>Calendario (Round Robin)</h2>
+        <div class="row">
+          <button class="btn secondary small" id="regenScheduleBtn" type="button">Generar / Regenerar calendario</button>
         </div>
-      );
-    }
+      </div>
+      <div class="hint">Rotación estándar de round-robin (método del círculo) con asignación de pistas rotativa semana a semana, siguiendo la convención de calendarios USBC de pares de pistas fijos con rotación. Las rondas de posiciones se calculan a partir de la clasificación vigente cuando llega esa semana.</div>
+      <div id="scheduleContainer"></div>
+    </div>
+  </section>
 
-    /* ---------------------------- design tokens & shared style ------------------ */
+  <!-- SCORES -->
+  <section class="view" id="view-scores">
+    <div class="card">
+      <div class="row between">
+        <h2>Captura de Puntajes Semanales</h2>
+        <div class="field" style="min-width:200px;margin:0">
+          <select id="weekSelect"></select>
+        </div>
+      </div>
+      <div id="weekMatchesContainer"></div>
+    </div>
+  </section>
 
-    const TOKENS = {
-      bg: "#0B1220",
-      panel: "#121A2E",
-      panelAlt: "#0E1526",
-      line: "#243156",
-      gold: "#F0B429",
-      goldSoft: "#C9932A",
-      coral: "#EF476F",
-      teal: "#17C3B2",
-      text: "#F4F1E8",
-      textDim: "#9AA5C4",
-      textFaint: "#5C6588",
-      fontDisplay: "'Oswald', 'Arial Narrow', sans-serif",
-      fontBody: "'Inter', -apple-system, 'Segoe UI', sans-serif",
-    };
+  <!-- STANDINGS -->
+  <section class="view" id="view-standings">
+    <div class="card">
+      <div class="row between">
+        <h2>Récords y Marcas de Honor</h2>
+        <button class="btn gold small" id="exportPdfBtn" type="button">Exportar PDF (2 páginas)</button>
+      </div>
+      <div class="record-grid" id="recordsGrid"></div>
+      <div id="honorLists" style="margin-top:14px"></div>
+    </div>
 
-    function StyleBlock() {
-      return (
-        <style>{`
-          @import url('https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap');
-          * { box-sizing: border-box; }
-          ::selection { background: ${TOKENS.gold}; color: #0B1220; }
-          input, select { font-family: ${TOKENS.fontBody}; }
-          table { border-collapse: collapse; width: 100%; }
-          @media print {
-            .no-print { display: none !important; }
-            .print-page { page-break-after: always; }
-            body { background: white !important; }
-          }
-        `}</style>
-      );
-    }
+    <div class="card">
+      <h2>Clasificación de Equipos</h2>
+      <div class="hint">Ordenado por puntos ganados, luego pinos totales con hándicap, luego juego más alto con hándicap. Se muestran los puntos posibles jugados a la fecha.</div>
+      <div id="teamStandingsContainer"></div>
+    </div>
 
-    const styles = {
-      loadingScreen: {
-        minHeight: "100vh",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-        gap: 12,
-        background: TOKENS.bg,
-      },
-      loadingLogo: { fontSize: 40 },
-      appShell: {
-        minHeight: "100vh",
-        background: TOKENS.bg,
-        color: TOKENS.text,
-        fontFamily: TOKENS.fontBody,
-      },
-      body: { display: "flex", alignItems: "flex-start" },
-      main: { flex: 1, padding: "24px 28px", minWidth: 0 },
-    };
+    <div class="card">
+      <h2>Clasificación Individual por Categoría</h2>
+      <div class="hint">Ordenado por promedio escratch. Los bowlers que matemáticamente ya no pueden alcanzar el 80% de juegos posibles se muestran atenuados debajo de la línea de corte.</div>
+      <div id="individualStandingsContainer"></div>
+    </div>
+  </section>
 
-    /* ---------------------------- Logo ------------------------------------------ */
-
-    function Logo({ size = 40 }) {
-      return (
-        <svg width={size} height={size} viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-          <defs>
-            <linearGradient id="pinGrad" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#FDF6E3" />
-              <stop offset="100%" stopColor="#E7DCC0" />
-            </linearGradient>
-          </defs>
-          <circle cx="50" cy="50" r="48" fill={TOKENS.panelAlt} stroke={TOKENS.gold} strokeWidth="2" />
-          <polygon
-            points="50,10 54.5,24 69,24 57.5,33 62,47 50,38 38,47 42.5,33 31,24 45.5,24"
-            fill={TOKENS.gold}
-          />
-          <path
-            d="M50 46 C 44 46 40 52 40 60 C 40 68 44 78 50 88 C 56 78 60 68 60 60 C 60 52 56 46 50 46 Z"
-            fill="url(#pinGrad)"
-            stroke={TOKENS.textFaint}
-            strokeWidth="1"
-          />
-          <ellipse cx="50" cy="58" rx="6" ry="2.4" fill={TOKENS.coral} opacity="0.85" />
-          <ellipse cx="50" cy="64" rx="6" ry="2.4" fill={TOKENS.teal} opacity="0.85" />
-        </svg>
-      );
-    }
-
-    /* ---------------------------- Header / Sidebar ------------------------------ */
-
-    function Header({ league, saveState }) {
-      return (
-        <header
-          className="no-print"
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            padding: "14px 28px",
-            borderBottom: `1px solid ${TOKENS.line}`,
-            background: TOKENS.panel,
-          }}
-        >
-          <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-            <Logo size={38} />
-            <div>
-              <div style={{ fontFamily: TOKENS.fontDisplay, fontSize: 22, letterSpacing: 0.5, color: TOKENS.text, lineHeight: 1 }}>
-                {league.name || "Torneo Estelar"}
-              </div>
-              <div style={{ fontSize: 12, color: TOKENS.textDim, marginTop: 2 }}>
-                Temporada {league.seasonLabel || "actual"} · {league.sessionsCount} semanas · {league.teams.length} equipos
-              </div>
-            </div>
-          </div>
-          <div style={{ fontSize: 12, color: saveState === "error" ? TOKENS.coral : TOKENS.textDim, minWidth: 90, textAlign: "right" }}>
-            {saveState === "saving" && "Guardando…"}
-            {saveState === "saved" && "Guardado ✓"}
-            {saveState === "error" && "Error al guardar"}
-          </div>
-        </header>
-      );
-    }
-
-    const NAV_ITEMS = [
-      { id: "teams", label: "Equipos" },
-      { id: "schedule", label: "Calendario" },
-      { id: "entry", label: "Captura semanal" },
-      { id: "standings", label: "Posiciones" },
-      { id: "records", label: "Récords" },
-      { id: "data", label: "Datos" },
-    ];
-
-    function Sidebar({ tab, setTab, league }) {
-      return (
-        <nav
-          className="no-print"
-          style={{
-            width: 200,
-            flexShrink: 0,
-            borderRight: `1px solid ${TOKENS.line}`,
-            minHeight: "calc(100vh - 70px)",
-            padding: "18px 10px",
-            background: TOKENS.panelAlt,
-          }}
-        >
-          {NAV_ITEMS.map((item) => (
-            <button
-              key={item.id}
-              onClick={() => setTab(item.id)}
-              style={{
-                display: "block",
-                width: "100%",
-                textAlign: "left",
-                padding: "10px 14px",
-                marginBottom: 4,
-                borderRadius: 4,
-                border: "none",
-                cursor: "pointer",
-                fontFamily: TOKENS.fontDisplay,
-                fontSize: 14,
-                letterSpacing: 0.3,
-                background: tab === item.id ? TOKENS.gold : "transparent",
-                color: tab === item.id ? "#0B1220" : TOKENS.textDim,
-              }}
-            >
-              {item.label}
-            </button>
-          ))}
-          {league.ended && (
-            <div style={{ marginTop: 16, padding: "8px 10px", fontSize: 11, color: TOKENS.coral, border: `1px solid ${TOKENS.coral}`, borderRadius: 4 }}>
-              Temporada finalizada
-            </div>
-          )}
-        </nav>
-      );
-    }
-
-    /* ---------------------------- shared small components ------------------------ */
-
-    function Panel({ title, subtitle, children, right }) {
-      return (
-        <section style={{ background: TOKENS.panel, border: `1px solid ${TOKENS.line}`, borderRadius: 6, padding: 20, marginBottom: 20 }}>
-          {(title || right) && (
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: subtitle ? 2 : 14 }}>
-              {title && <h2 style={{ fontFamily: TOKENS.fontDisplay, fontSize: 18, margin: 0, color: TOKENS.text }}>{title}</h2>}
-              {right}
-            </div>
-          )}
-          {subtitle && <div style={{ fontSize: 12.5, color: TOKENS.textDim, marginBottom: 14 }}>{subtitle}</div>}
-          {children}
-        </section>
-      );
-    }
-
-    function Btn({ children, onClick, variant = "primary", small, disabled, type = "button" }) {
-      const palette = {
-        primary: { bg: TOKENS.gold, color: "#0B1220" },
-        ghost: { bg: "transparent", color: TOKENS.text, border: `1px solid ${TOKENS.line}` },
-        danger: { bg: "transparent", color: TOKENS.coral, border: `1px solid ${TOKENS.coral}` },
-        teal: { bg: TOKENS.teal, color: "#0B1220" },
-      }[variant];
-      return (
-        <button
-          type={type}
-          disabled={disabled}
-          onClick={onClick}
-          style={{
-            background: palette.bg,
-            color: palette.color,
-            border: palette.border || "none",
-            borderRadius: 4,
-            padding: small ? "6px 10px" : "9px 16px",
-            fontFamily: TOKENS.fontDisplay,
-            fontSize: small ? 12 : 13.5,
-            letterSpacing: 0.3,
-            cursor: disabled ? "not-allowed" : "pointer",
-            opacity: disabled ? 0.5 : 1,
-          }}
-        >
-          {children}
-        </button>
-      );
-    }
-
-    function Field({ label, children }) {
-      return (
-        <label style={{ display: "flex", flexDirection: "column", gap: 4, fontSize: 12.5, color: TOKENS.textDim, marginBottom: 10 }}>
-          {label}
-          {children}
+  <!-- DATA -->
+  <section class="view" id="view-data">
+    <div class="card">
+      <h2>Respaldo del Torneo</h2>
+      <div class="hint">Exporta un archivo de respaldo en cualquier momento. Si pierdes la información, impórtalo para restaurar la liga completa.</div>
+      <div class="file-actions">
+        <button class="btn" id="exportJsonBtn" type="button">Exportar archivo del torneo (.json)</button>
+        <label class="btn secondary" style="cursor:pointer">Importar archivo del torneo
+          <input type="file" id="importJsonInput" accept="application/json" style="display:none">
         </label>
-      );
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Fin de Temporada</h2>
+      <div class="hint">
+        Al finalizar la temporada: los bowlers con 12 juegos o más congelan su promedio final como "Entering Average" (hándicap fijo por 9 juegos en la próxima temporada). Los que jugaron menos de 12 juegos se tratan como nueva entrada (hándicap semanal desde cero, requieren 2 juegos en su primera sesión o quedan en hándicap 0).
+      </div>
+      <div class="row">
+        <button class="btn danger" id="endTournamentBtn" type="button">Finalizar Temporada</button>
+        <button class="btn secondary" id="startSeasonBtn" type="button">Iniciar nueva temporada (usar mismo róster)</button>
+      </div>
+      <div id="seasonStatus" class="notice" style="display:none;margin-top:14px"></div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="app">Torneo Estelar · Sistema de administración de liga · datos guardados localmente en este navegador</footer>
+
+<script>
+/* =========================================================================
+   TORNEO ESTELAR — League management app
+   Single-file, no build step. State persisted to localStorage and
+   exportable/importable as a JSON "tournament file".
+   ========================================================================= */
+
+const CATEGORIES = ["Oro","Plata","Bronze","Niquel"];
+const TEAM_GROUPS = ["Oro","Plata"];
+const GAMES_PER_MATCH = 3;
+const POINTS_PER_GAME = 1;
+const POINTS_PER_SERIES = 2;
+const POINTS_ASSISTANCE = 1;
+const POINTS_PRONTO = 1;
+const POINTS_UNIFORME = 1;
+const MAX_POINTS_PER_MATCH = (POINTS_PER_GAME*GAMES_PER_MATCH)+POINTS_PER_SERIES+POINTS_ASSISTANCE+POINTS_PRONTO+POINTS_UNIFORME; // 8
+
+const STORAGE_KEY = "torneoEstelarState_v1";
+
+function defaultState(){
+  return {
+    meta:{ leagueName:"Torneo Estelar", seasonNumber:1, ended:false, endedSummary:null },
+    config:{ numTeams:8, teamSize:4, numWeeks:14, positionRounds:[], blindScore:190, configured:false },
+    teams:[],
+    bowlers:[],
+    schedule:[], // [{week, type:'regular'|'position', posType:'within'|'between', matches:[{id,teamA,teamB,lanes:[a,b],lineups:{teamA:[ids],teamB:[ids]},locked}]}]
+    results:{}, // matchId -> {games:{bowlerId:[{score,blind}...]}, prontoPago:{teamA,teamB}, uniforme:{teamA,teamB}, saved}
+    nextIds:{ team:1, bowler:1, match:1 }
+  };
+}
+
+let state = loadState();
+
+function loadState(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(raw) return migrateState(JSON.parse(raw));
+  }catch(e){ console.warn("Could not load saved state", e); }
+  return defaultState();
+}
+function migrateState(s){
+  const d = defaultState();
+  return Object.assign(d, s, {
+    meta: Object.assign(d.meta, s.meta||{}),
+    config: Object.assign(d.config, s.config||{}),
+    nextIds: Object.assign(d.nextIds, s.nextIds||{})
+  });
+}
+function saveState(){
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+}
+
+// ---------------------------------------------------------------------------
+// HANDICAP LOGIC
+// ---------------------------------------------------------------------------
+function maxHandicapFor(category, gender){
+  switch(category){
+    case "Oro": return 10;
+    case "Plata": return 20;
+    case "Bronze": return 30;
+    case "Niquel": return gender==="F" ? 50 : 40;
+    default: return 0;
+  }
+}
+function handicapFromAverage(category, gender, average){
+  const max = maxHandicapFor(category, gender);
+  const raw = 0.9 * (220 - average);
+  return Math.max(0, Math.min(max, Math.round(raw)));
+}
+
+// All REAL (non-blind) games a bowler has bowled, in chronological (week) order.
+function realGamesOf(bowler){
+  return (bowler.games||[]).filter(g=>!g.blind).sort((a,b)=>a.week-b.week);
+}
+function gamesPlayedCount(bowler){ return realGamesOf(bowler).length; }
+
+function averageOfGames(games){
+  if(!games.length) return null;
+  const total = games.reduce((s,g)=>s+g.score,0);
+  return total/games.length;
+}
+
+// Determines whether a "new entry" bowler (no entering average) is locked at 0
+// handicap because their first bowling session had fewer than 2 real games.
+function isHandicapLocked0(bowler){
+  if(bowler.enteringAverage!=null) return false;
+  const rg = realGamesOf(bowler);
+  if(rg.length===0) return false; // hasn't bowled yet -- not locked, just no data
+  const firstWeek = rg[0].week;
+  const firstSessionGames = rg.filter(g=>g.week===firstWeek);
+  return firstSessionGames.length < 2;
+}
+
+// Handicap to use for a bowler AT a given week (games strictly before `week`
+// determine the average used, matching standard weekly-recalculation practice).
+function handicapForWeek(bowler, week){
+  const category = bowler.category, gender = bowler.gender;
+  const rgBefore = realGamesOf(bowler).filter(g=>g.week<week);
+  const totalRealGames = gamesPlayedCount(bowler);
+
+  if(bowler.enteringAverage!=null){
+    const gamesSoFarBefore = rgBefore.length;
+    if(gamesSoFarBefore < 9){
+      return handicapFromAverage(category, gender, bowler.enteringAverage);
     }
+    const avg = averageOfGames(rgBefore);
+    return handicapFromAverage(category, gender, avg==null?bowler.enteringAverage:avg);
+  }
 
-    const inputStyle = {
-      background: TOKENS.panelAlt,
-      border: `1px solid ${TOKENS.line}`,
-      borderRadius: 4,
-      padding: "8px 10px",
-      color: TOKENS.text,
-      fontSize: 13.5,
-    };
+  // New entry, no entering average
+  if(isHandicapLocked0(bowler)) return 0;
+  if(rgBefore.length===0) return 0; // no prior data yet
+  const avg = averageOfGames(rgBefore);
+  return handicapFromAverage(category, gender, avg);
+}
 
-    /* ============================================================================
-       SETUP WIZARD
-       ============================================================================ */
+function currentHandicap(bowler){
+  // "as of now" -- one week past the last recorded week (or week 1 if none)
+  const rg = realGamesOf(bowler);
+  const lastWeek = rg.length ? rg[rg.length-1].week : 0;
+  return handicapForWeek(bowler, lastWeek+1);
+}
 
-    function SetupWizard({ existing, onComplete }) {
-      const [step, setStep] = useState(1);
-      const [name, setName] = useState(existing?.name || "Torneo Estelar");
-      const [seasonLabel, setSeasonLabel] = useState(existing?.seasonLabel || "");
-      const [numTeams, setNumTeams] = useState(existing?.teams?.length || 8);
-      const [teamLineupGames, setTeamLineupGames] = useState(existing?.teamLineupGames ? existing.teamLineupGames / 3 : 4);
-      const [sessionsCount, setSessionsCount] = useState(existing?.sessionsCount || 16);
-      const [teams, setTeams] = useState(existing?.teams || []);
-      const [positionsRounds, setPositionsRounds] = useState(existing?.positionsRounds || []);
+function scratchAverage(bowler){
+  const rg = realGamesOf(bowler);
+  if(!rg.length) return null;
+  return averageOfGames(rg);
+}
 
-      useEffect(() => {
-        if (step === 2 && teams.length !== numTeams) {
-          const next = [];
-          for (let i = 0; i < numTeams; i++) {
-            next.push(
-              teams[i] || {
-                id: uid("team"),
-                name: `Equipo ${i + 1}`,
-                group: i % 2 === 0 ? "Oro" : "Plata",
-                bowlers: [],
-              }
-            );
-          }
-          setTeams(next);
-        }
-      }, [step]);
+// ---------------------------------------------------------------------------
+// HELPERS
+// ---------------------------------------------------------------------------
+function uid(kind){ const n = state.nextIds[kind]++; return kind[0].toUpperCase()+n; }
+function teamById(id){ return state.teams.find(t=>t.id===id); }
+function bowlerById(id){ return state.bowlers.find(b=>b.id===id); }
+function bowlersOfTeam(teamId){ return state.bowlers.filter(b=>b.teamId===teamId); }
+function fmt1(n){ return (Math.round(n*10)/10).toFixed(1); }
+function fmt0(n){ return Math.round(n); }
+function completedWeeks(){
+  const weeks = new Set();
+  Object.keys(state.results).forEach(mid=>{
+    const r = state.results[mid];
+    if(r.saved) weeks.add(matchWeek(mid));
+  });
+  return weeks;
+}
+function matchWeek(matchId){
+  for(const wk of state.schedule){ if(wk.matches.some(m=>m.id===matchId)) return wk.week; }
+  return null;
+}
+function findMatch(matchId){
+  for(const wk of state.schedule){
+    const m = wk.matches.find(m=>m.id===matchId);
+    if(m) return {week:wk, match:m};
+  }
+  return null;
+}
 
-      function updateTeam(id, patch) {
-        setTeams((ts) => ts.map((t) => (t.id === id ? { ...t, ...patch } : t)));
-      }
+// ---------------------------------------------------------------------------
+// TABS
+// ---------------------------------------------------------------------------
+document.getElementById("tabsNav").addEventListener("click", e=>{
+  const btn = e.target.closest("button[data-tab]");
+  if(!btn) return;
+  activateTab(btn.dataset.tab);
+});
+function activateTab(tab){
+  document.querySelectorAll("nav.tabs button").forEach(b=>b.classList.toggle("active", b.dataset.tab===tab));
+  document.querySelectorAll(".view").forEach(v=>v.classList.toggle("active", v.id==="view-"+tab));
+  if(tab==="roster") renderRoster();
+  if(tab==="schedule") renderSchedule();
+  if(tab==="scores") renderScoresTab();
+  if(tab==="standings") renderStandings();
+  if(tab==="data") renderDataTab();
+  if(tab==="setup") renderSetup();
+}
 
-      function addBowler(teamId) {
-        setTeams((ts) =>
-          ts.map((t) =>
-            t.id === teamId && t.bowlers.length < 8
-              ? {
-                  ...t,
-                  bowlers: [
-                    ...t.bowlers,
-                    { id: uid("bwl"), name: "", category: "Oro", isWoman: false, enteringAverage: "" },
-                  ],
-                }
-              : t
-          )
-        );
-      }
-      function updateBowler(teamId, bowlerId, patch) {
-        setTeams((ts) =>
-          ts.map((t) =>
-            t.id === teamId
-              ? { ...t, bowlers: t.bowlers.map((b) => (b.id === bowlerId ? { ...b, ...patch } : b)) }
-              : t
-          )
-        );
-      }
-      function removeBowler(teamId, bowlerId) {
-        setTeams((ts) =>
-          ts.map((t) => (t.id === teamId ? { ...t, bowlers: t.bowlers.filter((b) => b.id !== bowlerId) } : t))
-        );
-      }
+// =============================================================================
+// SETUP VIEW
+// =============================================================================
+function renderSetup(){
+  document.getElementById("cfgLeagueName").value = state.meta.leagueName;
+  document.getElementById("cfgNumTeams").value = state.config.numTeams;
+  document.getElementById("cfgTeamSize").value = state.config.teamSize;
+  document.getElementById("cfgNumWeeks").value = state.config.numWeeks;
+  document.getElementById("cfgBlindScore").value = state.config.blindScore;
+  renderPosRounds();
+}
+function renderPosRounds(){
+  const list = document.getElementById("posRoundsList");
+  list.innerHTML = "";
+  state.config.positionRounds.forEach((pr,idx)=>{
+    const row = document.createElement("div");
+    row.className = "pos-round-row";
+    row.innerHTML = `
+      <div class="field" style="margin:0"><label>Semana</label>
+        <input type="number" min="1" value="${pr.week}" data-idx="${idx}" data-field="week"></div>
+      <div class="field" style="margin:0"><label>Tipo</label>
+        <select data-idx="${idx}" data-field="type">
+          <option value="within" ${pr.type==="within"?"selected":""}>Dentro del grupo (1ro vs 2do, 3ro vs 4to...)</option>
+          <option value="between" ${pr.type==="between"?"selected":""}>Entre grupos (Oro 1ro vs Plata 1ro...)</option>
+        </select></div>
+      <button class="btn secondary small" data-remove="${idx}" type="button">Quitar</button>
+    `;
+    list.appendChild(row);
+  });
+  list.querySelectorAll("input,select").forEach(el=>{
+    el.addEventListener("change", ()=>{
+      const idx = +el.dataset.idx;
+      if(el.dataset.field==="week") state.config.positionRounds[idx].week = +el.value;
+      else state.config.positionRounds[idx].type = el.value;
+    });
+  });
+  list.querySelectorAll("[data-remove]").forEach(btn=>{
+    btn.addEventListener("click", ()=>{
+      state.config.positionRounds.splice(+btn.dataset.remove,1);
+      renderPosRounds();
+    });
+  });
+}
+document.getElementById("addPosRoundBtn").addEventListener("click", ()=>{
+  state.config.positionRounds.push({week:1,type:"within"});
+  renderPosRounds();
+});
+document.getElementById("saveConfigBtn").addEventListener("click", ()=>{
+  state.meta.leagueName = document.getElementById("cfgLeagueName").value || "Torneo Estelar";
+  state.config.numTeams = Math.max(2, +document.getElementById("cfgNumTeams").value || 2);
+  state.config.teamSize = Math.max(1, +document.getElementById("cfgTeamSize").value || 4);
+  state.config.numWeeks = Math.max(1, +document.getElementById("cfgNumWeeks").value || 1);
+  state.config.blindScore = +document.getElementById("cfgBlindScore").value || 190;
+  state.config.configured = true;
+  saveState();
+  document.getElementById("cfgSavedMsg").textContent = "✓ Configuración guardada — " + new Date().toLocaleTimeString();
+  document.querySelector(".brandtext .name").textContent = state.meta.leagueName.toUpperCase();
+});
 
-      function addPositionsRound() {
-        setPositionsRounds((p) => [...p, { week: Math.min(sessionsCount, 4), type: "within" }]);
-      }
-      function updatePositionsRound(i, patch) {
-        setPositionsRounds((p) => p.map((r, idx) => (idx === i ? { ...r, ...patch } : r)));
-      }
-      function removePositionsRound(i) {
-        setPositionsRounds((p) => p.filter((_, idx) => idx !== i));
-      }
+// =============================================================================
+// ROSTER VIEW (Teams & Bowlers)
+// =============================================================================
+document.getElementById("addTeamBtn").addEventListener("click", ()=>{
+  const id = uid("team");
+  state.teams.push({id, name:"Equipo "+id, group:"Oro"});
+  saveState();
+  renderRoster();
+});
 
-      async function finish() {
-        const flatBowlers = [];
-        const cleanTeams = teams.map((t) => ({
-          id: t.id,
-          name: t.name,
-          group: t.group,
-          bowlers: t.bowlers.map((b) => b.id),
-        }));
-        teams.forEach((t) => {
-          t.bowlers.forEach((b) => {
-            flatBowlers.push({
-              id: b.id,
-              teamId: t.id,
-              name: b.name || "Sin nombre",
-              category: b.category,
-              isWoman: !!b.isWoman,
-              enteringAverage: b.enteringAverage === "" ? null : Number(b.enteringAverage),
-            });
-          });
-        });
-        const league = {
-          setupComplete: true,
-          name,
-          seasonLabel,
-          sessionsCount: Number(sessionsCount),
-          teamLineupGames: Number(teamLineupGames) * 3,
-          teamLineupPerGame: Number(teamLineupGames),
-          teams: cleanTeams,
-          bowlers: flatBowlers,
-          positionsRounds: positionsRounds.map((p) => ({ week: Number(p.week), type: p.type })),
-          weeklyResults: {},
-          ended: false,
-          createdAt: Date.now(),
-        };
-        await onComplete(league);
-      }
-
-      return (
-        <div style={{ maxWidth: 780, margin: "0 auto", padding: "40px 20px" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 28 }}>
-            <Logo size={44} />
-            <div>
-              <div style={{ fontFamily: TOKENS.fontDisplay, fontSize: 26, color: TOKENS.text }}>Torneo Estelar</div>
-              <div style={{ fontSize: 13, color: TOKENS.textDim }}>Configuración de la liga — paso {step} de 4</div>
-            </div>
-          </div>
-
-          {step === 1 && (
-            <Panel title="Datos generales de la liga">
-              <Field label="Nombre de la liga">
-                <input style={inputStyle} value={name} onChange={(e) => setName(e.target.value)} />
-              </Field>
-              <Field label="Temporada (etiqueta, opcional)">
-                <input style={inputStyle} placeholder="p. ej. Otoño 2026" value={seasonLabel} onChange={(e) => setSeasonLabel(e.target.value)} />
-              </Field>
-              <Field label="Número de equipos">
-                <input type="number" min={2} style={inputStyle} value={numTeams} onChange={(e) => setNumTeams(Math.max(2, Number(e.target.value)))} />
-              </Field>
-              <Field label="Bowlers en la alineación por semana (por equipo)">
-                <input type="number" min={1} max={8} style={inputStyle} value={teamLineupGames} onChange={(e) => setTeamLineupGames(Math.max(1, Math.min(8, Number(e.target.value))))} />
-              </Field>
-              <Field label="Número de sesiones (semanas) de la temporada">
-                <input type="number" min={1} style={inputStyle} value={sessionsCount} onChange={(e) => setSessionsCount(Math.max(1, Number(e.target.value)))} />
-              </Field>
-              <div style={{ display: "flex", justifyContent: "flex-end" }}>
-                <Btn onClick={() => setStep(2)}>Siguiente: Equipos →</Btn>
-              </div>
-            </Panel>
-          )}
-
-          {step === 2 && (
-            <Panel title="Equipos y jugadores" subtitle="Hasta 8 bowlers por equipo. Cada equipo pertenece al grupo Oro o Plata.">
-              {teams.map((t) => (
-                <div key={t.id} style={{ border: `1px solid ${TOKENS.line}`, borderRadius: 6, padding: 14, marginBottom: 14 }}>
-                  <div style={{ display: "flex", gap: 10, alignItems: "center", marginBottom: 10 }}>
-                    <input style={{ ...inputStyle, flex: 1, fontFamily: TOKENS.fontDisplay }} value={t.name} onChange={(e) => updateTeam(t.id, { name: e.target.value })} />
-                    <select style={inputStyle} value={t.group} onChange={(e) => updateTeam(t.id, { group: e.target.value })}>
-                      {GROUPS.map((g) => (
-                        <option key={g} value={g}>
-                          Grupo {g}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  {t.bowlers.map((b) => (
-                    <div key={b.id} style={{ display: "grid", gridTemplateColumns: "1.6fr 1fr 0.7fr 1fr auto", gap: 8, marginBottom: 6, alignItems: "center" }}>
-                      <input style={inputStyle} placeholder="Nombre" value={b.name} onChange={(e) => updateBowler(t.id, b.id, { name: e.target.value })} />
-                      <select style={inputStyle} value={b.category} onChange={(e) => updateBowler(t.id, b.id, { category: e.target.value })}>
-                        {CATEGORIES.map((c) => (
-                          <option key={c} value={c}>
-                            {c}
-                          </option>
-                        ))}
-                      </select>
-                      <label style={{ fontSize: 11.5, color: TOKENS.textDim, display: "flex", alignItems: "center", gap: 4 }}>
-                        <input type="checkbox" checked={!!b.isWoman} onChange={(e) => updateBowler(t.id, b.id, { isWoman: e.target.checked })} /> Mujer
-                      </label>
-                      <input style={inputStyle} type="number" placeholder="Promedio entrada" value={b.enteringAverage} onChange={(e) => updateBowler(t.id, b.id, { enteringAverage: e.target.value })} />
-                      <Btn variant="danger" small onClick={() => removeBowler(t.id, b.id)}>
-                        ✕
-                      </Btn>
-                    </div>
-                  ))}
-                  {t.bowlers.length < 8 && (
-                    <Btn variant="ghost" small onClick={() => addBowler(t.id)}>
-                      + Agregar bowler
-                    </Btn>
-                  )}
-                </div>
-              ))}
-              <div style={{ display: "flex", justifyContent: "space-between" }}>
-                <Btn variant="ghost" onClick={() => setStep(1)}>
-                  ← Atrás
-                </Btn>
-                <Btn onClick={() => setStep(3)}>Siguiente: Rondas de posiciones →</Btn>
-              </div>
-            </Panel>
-          )}
-
-          {step === 3 && (
-            <Panel
-              title="Rondas de posiciones"
-              subtitle="Define en qué semana(s) se juega una ronda de posiciones en vez de la rotación normal, y si empareja dentro del mismo grupo (1° vs 2°, 3° vs 4°…) o entre grupos (Oro 1° vs Plata 1°…)."
-            >
-              {positionsRounds.map((r, i) => (
-                <div key={i} style={{ display: "flex", gap: 10, marginBottom: 8, alignItems: "center" }}>
-                  <span style={{ fontSize: 12.5, color: TOKENS.textDim }}>Semana</span>
-                  <input
-                    type="number"
-                    min={1}
-                    max={sessionsCount}
-                    style={{ ...inputStyle, width: 80 }}
-                    value={r.week}
-                    onChange={(e) => updatePositionsRound(i, { week: e.target.value })}
-                  />
-                  <select style={inputStyle} value={r.type} onChange={(e) => updatePositionsRound(i, { type: e.target.value })}>
-                    <option value="within">Dentro del grupo</option>
-                    <option value="between">Entre grupos</option>
-                  </select>
-                  <Btn variant="danger" small onClick={() => removePositionsRound(i)}>
-                    ✕
-                  </Btn>
-                </div>
-              ))}
-              <Btn variant="ghost" small onClick={addPositionsRound}>
-                + Agregar ronda de posiciones
-              </Btn>
-              <div style={{ display: "flex", justifyContent: "space-between", marginTop: 16 }}>
-                <Btn variant="ghost" onClick={() => setStep(2)}>
-                  ← Atrás
-                </Btn>
-                <Btn onClick={() => setStep(4)}>Siguiente: Confirmar →</Btn>
-              </div>
-            </Panel>
-          )}
-
-          {step === 4 && (
-            <Panel title="Confirmar y crear la liga">
-              <ul style={{ fontSize: 13.5, color: TOKENS.textDim, lineHeight: 1.9 }}>
-                <li>
-                  <b style={{ color: TOKENS.text }}>{name}</b> {seasonLabel && `· ${seasonLabel}`}
-                </li>
-                <li>{teams.length} equipos, {teams.reduce((a, t) => a + t.bowlers.length, 0)} bowlers registrados</li>
-                <li>{sessionsCount} semanas · {teamLineupGames} bowlers en alineación semanal</li>
-                <li>{positionsRounds.length} ronda(s) de posiciones configurada(s)</li>
-              </ul>
-              <div style={{ display: "flex", justifyContent: "space-between", marginTop: 10 }}>
-                <Btn variant="ghost" onClick={() => setStep(3)}>
-                  ← Atrás
-                </Btn>
-                <Btn onClick={finish}>Crear liga 🎳</Btn>
-              </div>
-            </Panel>
-          )}
+function renderRoster(){
+  const container = document.getElementById("teamsContainer");
+  container.innerHTML = "";
+  if(!state.teams.length){
+    container.innerHTML = '<div class="empty">Aún no hay equipos registrados. Usa "+ Nuevo equipo".</div>';
+    return;
+  }
+  state.teams.forEach(team=>{
+    const box = document.createElement("div");
+    box.className = "card";
+    box.style.background = "var(--bg-elev)";
+    const bowlers = bowlersOfTeam(team.id);
+    box.innerHTML = `
+      <div class="row between" style="margin-bottom:10px">
+        <div class="row">
+          <input type="text" value="${escapeHtml(team.name)}" data-team="${team.id}" data-field="name" style="width:220px;font-weight:700">
+          <select data-team="${team.id}" data-field="group">
+            ${TEAM_GROUPS.map(g=>`<option value="${g}" ${team.group===g?"selected":""}>Grupo ${g}</option>`).join("")}
+          </select>
+          <span class="tag">${bowlers.length}/8 bowlers</span>
         </div>
-      );
-    }
+        <button class="btn danger small" data-del-team="${team.id}" type="button">Eliminar equipo</button>
+      </div>
+      <div class="bowlers-list" data-bowlers-of="${team.id}"></div>
+      <button class="btn secondary small" data-add-bowler="${team.id}" type="button" ${bowlers.length>=8?"disabled":""}>+ Agregar bowler</button>
+    `;
+    container.appendChild(box);
+    renderBowlersOfTeam(box.querySelector(`[data-bowlers-of="${team.id}"]`), team.id);
+  });
 
-    /* ============================================================================
-       TEAMS VIEW
-       ============================================================================ */
-
-    function TeamsView({ league, onChange }) {
-      function updateBowler(bowlerId, patch) {
-        const bowlers = league.bowlers.map((b) => (b.id === bowlerId ? { ...b, ...patch } : b));
-        onChange({ ...league, bowlers });
-      }
-      function addBowler(teamId) {
-        const team = league.teams.find((t) => t.id === teamId);
-        if (team.bowlers.length >= 8) return;
-        const newB = { id: uid("bwl"), teamId, name: "Nuevo bowler", category: "Oro", isWoman: false, enteringAverage: null };
-        const teams = league.teams.map((t) => (t.id === teamId ? { ...t, bowlers: [...t.bowlers, newB.id] } : t));
-        onChange({ ...league, teams, bowlers: [...league.bowlers, newB] });
-      }
-      function removeBowler(teamId, bowlerId) {
-        const teams = league.teams.map((t) => (t.id === teamId ? { ...t, bowlers: t.bowlers.filter((id) => id !== bowlerId) } : t));
-        onChange({ ...league, teams, bowlers: league.bowlers.filter((b) => b.id !== bowlerId) });
-      }
-      function updateTeam(teamId, patch) {
-        onChange({ ...league, teams: league.teams.map((t) => (t.id === teamId ? { ...t, ...patch } : t)) });
-      }
-
-      return (
-        <div>
-          <Panel title="Equipos y rosters" subtitle="Edita nombres, categorías, sexo y promedio de entrada. Los cambios afectan el cálculo de hándicap.">
-            {league.teams.map((t) => (
-              <div key={t.id} style={{ border: `1px solid ${TOKENS.line}`, borderRadius: 6, padding: 14, marginBottom: 14 }}>
-                <div style={{ display: "flex", gap: 10, alignItems: "center", marginBottom: 10 }}>
-                  <input style={{ ...inputStyle, flex: 1, fontFamily: TOKENS.fontDisplay }} value={t.name} onChange={(e) => updateTeam(t.id, { name: e.target.value })} />
-                  <select style={inputStyle} value={t.group} onChange={(e) => updateTeam(t.id, { group: e.target.value })}>
-                    {GROUPS.map((g) => (
-                      <option key={g} value={g}>
-                        Grupo {g}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                {t.bowlers.map((bid) => {
-                  const b = league.bowlers.find((x) => x.id === bid);
-                  if (!b) return null;
-                  const stats = bowlerCareerStats(b, league);
-                  return (
-                    <div key={bid} style={{ display: "grid", gridTemplateColumns: "1.6fr 1fr 0.7fr 1fr 1fr auto", gap: 8, marginBottom: 6, alignItems: "center" }}>
-                      <input style={inputStyle} value={b.name} onChange={(e) => updateBowler(bid, { name: e.target.value })} />
-                      <select style={inputStyle} value={b.category} onChange={(e) => updateBowler(bid, { category: e.target.value })}>
-                        {CATEGORIES.map((c) => (
-                          <option key={c} value={c}>
-                            {c}
-                          </option>
-                        ))}
-                      </select>
-                      <label style={{ fontSize: 11.5, color: TOKENS.textDim, display: "flex", alignItems: "center", gap: 4 }}>
-                        <input type="checkbox" checked={!!b.isWoman} onChange={(e) => updateBowler(bid, { isWoman: e.target.checked })} /> Mujer
-                      </label>
-                      <input
-                        style={inputStyle}
-                        type="number"
-                        placeholder="Prom. entrada"
-                        value={b.enteringAverage ?? ""}
-                        onChange={(e) => updateBowler(bid, { enteringAverage: e.target.value === "" ? null : Number(e.target.value) })}
-                      />
-                      <div style={{ fontSize: 11.5, color: TOKENS.textFaint }}>
-                        {stats.gamesPlayed} jgs · prom {stats.average ? stats.average.toFixed(1) : "—"}
-                      </div>
-                      <Btn variant="danger" small onClick={() => removeBowler(t.id, bid)}>
-                        ✕
-                      </Btn>
-                    </div>
-                  );
-                })}
-                {t.bowlers.length < 8 && (
-                  <Btn variant="ghost" small onClick={() => addBowler(t.id)}>
-                    + Agregar bowler
-                  </Btn>
-                )}
-              </div>
-            ))}
-          </Panel>
-        </div>
-      );
-    }
-
-    /* ============================================================================
-       SCHEDULE VIEW
-       ============================================================================ */
-
-    function ScheduleView({ league }) {
-      const plan = useMemo(() => buildSeasonPlan(league), [league]);
-      const teamsById = Object.fromEntries(league.teams.map((t) => [t.id, t]));
-
-      return (
-        <Panel
-          title="Calendario de la temporada"
-          subtitle="Round robin generado automáticamente con rotación de lado de carril por semana. Las semanas de ronda de posiciones se emparejan al momento, según las posiciones vigentes."
-        >
-          <table>
-            <thead>
-              <tr>
-                {["Semana", "Tipo", "Enfrentamientos", "Carriles"].map((h) => (
-                  <th key={h} style={thStyle}>
-                    {h}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {plan.map((wk) => {
-                if (wk.type === "positions") {
-                  return (
-                    <tr key={wk.week} style={{ borderBottom: `1px solid ${TOKENS.line}` }}>
-                      <td style={tdStyle}>{wk.week}</td>
-                      <td style={{ ...tdStyle, color: TOKENS.gold }}>Ronda de posiciones ({wk.positionsType === "within" ? "dentro de grupo" : "entre grupos"})</td>
-                      <td style={tdStyle} colSpan={2}>
-                        Se genera en Captura semanal según la tabla vigente
-                      </td>
-                    </tr>
-                  );
-                }
-                const withLanes = assignLanes(wk.pairs);
-                return (
-                  <tr key={wk.week} style={{ borderBottom: `1px solid ${TOKENS.line}` }}>
-                    <td style={tdStyle}>{wk.week}</td>
-                    <td style={tdStyle}>Regular</td>
-                    <td style={tdStyle}>
-                      {withLanes.map(({ pair }, i) => (
-                        <div key={i}>
-                          {teamsById[pair[0]]?.name} vs {teamsById[pair[1]]?.name}
-                        </div>
-                      ))}
-                      {withLanes.length === 0 && <span style={{ color: TOKENS.textFaint }}>—</span>}
-                    </td>
-                    <td style={tdStyle}>
-                      {withLanes.map(({ lanes }, i) => (
-                        <div key={i}>
-                          {lanes[0]}-{lanes[1]}
-                        </div>
-                      ))}
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </Panel>
-      );
-    }
-
-    const thStyle = { textAlign: "left", fontSize: 11, textTransform: "none", letterSpacing: 0.4, color: TOKENS.textDim, padding: "6px 10px", borderBottom: `1px solid ${TOKENS.line}`, fontFamily: TOKENS.fontDisplay };
-    const tdStyle = { padding: "8px 10px", fontSize: 13, color: TOKENS.text, verticalAlign: "top" };
-
-    /* ============================================================================
-       WEEK ENTRY VIEW
-       ============================================================================ */
-
-    function WeekEntryView({ league, onChange }) {
-      const plan = useMemo(() => buildSeasonPlan(league), [league]);
-      const [week, setWeek] = useState(() => {
-        const firstUnsaved = plan.find((w) => !league.weeklyResults[w.week]?.matches?.every((m) => m.saved));
-        return firstUnsaved ? firstUnsaved.week : 1;
+  container.querySelectorAll("[data-team][data-field]").forEach(el=>{
+    el.addEventListener("change", ()=>{
+      const t = teamById(el.dataset.team);
+      t[el.dataset.field] = el.value;
+      saveState();
+    });
+  });
+  container.querySelectorAll("[data-del-team]").forEach(btn=>{
+    btn.addEventListener("click", ()=>{
+      if(!confirm("¿Eliminar este equipo y todos sus bowlers?")) return;
+      const tid = btn.dataset.delTeam;
+      state.bowlers = state.bowlers.filter(b=>b.teamId!==tid);
+      state.teams = state.teams.filter(t=>t.id!==tid);
+      saveState();
+      renderRoster();
+    });
+  });
+  container.querySelectorAll("[data-add-bowler]").forEach(btn=>{
+    btn.addEventListener("click", ()=>{
+      const tid = btn.dataset.addBowler;
+      if(bowlersOfTeam(tid).length>=8){ alert("Este equipo ya tiene 8 bowlers."); return; }
+      const id = uid("bowler");
+      state.bowlers.push({
+        id, name:"Bowler "+id, teamId:tid, category:"Oro", gender:"M",
+        enteringAverage:null, games:[]
       });
-      const weekPlan = plan.find((w) => w.week === week);
-      const existingWeek = league.weeklyResults[week];
+      saveState();
+      renderRoster();
+    });
+  });
+}
 
-      const teamsById = Object.fromEntries(league.teams.map((t) => [t.id, t]));
-      const bowlersById = Object.fromEntries(league.bowlers.map((b) => [b.id, b]));
+function renderBowlersOfTeam(container, teamId){
+  const bowlers = bowlersOfTeam(teamId);
+  container.innerHTML = "";
+  if(!bowlers.length){
+    container.innerHTML = '<div class="empty small">Sin bowlers todavía.</div>';
+    return;
+  }
+  const header = document.createElement("div");
+  header.className = "bowler-row";
+  header.style.borderBottom = "1px solid var(--border)";
+  header.innerHTML = `<label style="margin:0">Nombre</label><label style="margin:0">Categoría</label><label style="margin:0">Género</label><label style="margin:0">Entering Avg</label><label style="margin:0">Hcp actual</label><label style="margin:0"></label>`;
+  container.appendChild(header);
+  bowlers.forEach(b=>{
+    const row = document.createElement("div");
+    row.className = "bowler-row";
+    const hc = currentHandicap(b);
+    row.innerHTML = `
+      <input type="text" value="${escapeHtml(b.name)}" data-b="${b.id}" data-f="name">
+      <select data-b="${b.id}" data-f="category">${CATEGORIES.map(c=>`<option value="${c}" ${b.category===c?"selected":""}>${c}</option>`).join("")}</select>
+      <select data-b="${b.id}" data-f="gender"><option value="M" ${b.gender==="M"?"selected":""}>M</option><option value="F" ${b.gender==="F"?"selected":""}>F</option></select>
+      <input type="number" placeholder="—" value="${b.enteringAverage!=null?b.enteringAverage:""}" data-b="${b.id}" data-f="enteringAverage">
+      <div class="tag" style="text-align:center">${hc}</div>
+      <button class="btn danger small" data-delb="${b.id}" type="button">✕</button>
+    `;
+    container.appendChild(row);
+  });
+  container.querySelectorAll("[data-b][data-f]").forEach(el=>{
+    el.addEventListener("change", ()=>{
+      const b = bowlerById(el.dataset.b);
+      let v = el.value;
+      if(el.dataset.f==="enteringAverage") v = v===""?null:+v;
+      b[el.dataset.f] = v;
+      saveState();
+      renderRoster();
+    });
+  });
+  container.querySelectorAll("[data-delb]").forEach(btn=>{
+    btn.addEventListener("click", ()=>{
+      state.bowlers = state.bowlers.filter(b=>b.id!==btn.dataset.delb);
+      saveState();
+      renderRoster();
+    });
+  });
+}
+function escapeHtml(s){ return (s||"").replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c])); }
 
-      function currentGroupStandings() {
-        return computeTeamStandings(league);
+// =============================================================================
+// SCHEDULE GENERATION (round-robin, circle method + rotating lane pairs)
+// =============================================================================
+function generateRoundRobinRounds(teamIds){
+  let ids = teamIds.slice();
+  if(ids.length % 2 !== 0) ids.push(null); // bye
+  const n = ids.length;
+  const rounds = [];
+  let arr = ids.slice();
+  for(let r=0;r<n-1;r++){
+    const pairs = [];
+    for(let i=0;i<n/2;i++){
+      const a = arr[i], b = arr[n-1-i];
+      if(a!==null && b!==null) pairs.push([a,b]);
+    }
+    rounds.push(pairs);
+    const last = arr.pop();
+    arr.splice(1,0,last);
+  }
+  return rounds;
+}
+
+function buildSchedule(){
+  const teamIds = state.teams.map(t=>t.id);
+  if(teamIds.length<2){ alert("Registra al menos 2 equipos antes de generar el calendario."); return; }
+  const rrRounds = generateRoundRobinRounds(teamIds);
+  const totalPairSlots = Math.ceil(teamIds.length/2);
+  const posWeeksSet = new Map(state.config.positionRounds.map(pr=>[pr.week,pr.type]));
+
+  const schedule = [];
+  let rrCursor = 0; // which round-robin round to use next
+  for(let week=1; week<=state.config.numWeeks; week++){
+    if(posWeeksSet.has(week)){
+      schedule.push({week, type:"position", posType:posWeeksSet.get(week), matches:[]}); // matches computed later
+      continue;
+    }
+    const roundPairs = rrRounds[rrCursor % rrRounds.length];
+    const cycleNum = Math.floor(rrCursor / rrRounds.length); // 0 first pass, 1 second pass...
+    const matches = roundPairs.map((pair,i)=>{
+      let [a,b] = pair;
+      if(cycleNum % 2 === 1){ [a,b] = [b,a]; } // alternate home/away across repeats
+      const laneIdx = (i + rrCursor) % totalPairSlots;
+      const lanes = [laneIdx*2+1, laneIdx*2+2];
+      return {
+        id: uid("match"),
+        teamA:a, teamB:b, lanes,
+        lineups:{ teamA:[], teamB:[] },
+        locked:false
+      };
+    });
+    schedule.push({week, type:"regular", matches});
+    rrCursor++;
+  }
+  state.schedule = schedule;
+  state.results = {};
+  saveState();
+}
+
+document.getElementById("regenScheduleBtn").addEventListener("click", ()=>{
+  if(state.schedule.length && !confirm("Esto reemplazará el calendario y los puntajes capturados. ¿Continuar?")) return;
+  buildSchedule();
+  renderSchedule();
+});
+
+function renderSchedule(){
+  const container = document.getElementById("scheduleContainer");
+  container.innerHTML = "";
+  if(!state.schedule.length){
+    container.innerHTML = '<div class="empty">Genera el calendario para comenzar.</div>';
+    return;
+  }
+  state.schedule.forEach(wk=>{
+    const box = document.createElement("div");
+    box.className = "matchcard";
+    let inner = `<h4>Semana ${wk.week} ${wk.type==="position" ? `<span class="tag">Ronda de posiciones (${wk.posType==="within"?"dentro del grupo":"entre grupos"})</span>` : ""}</h4>`;
+    if(wk.type==="position"){
+      if(!wk.matches.length){
+        inner += `<div class="row"><button class="btn secondary small" data-compute-pos="${wk.week}" type="button">Calcular emparejamientos con la clasificación actual</button></div>`;
+      } else {
+        inner += wk.matches.map(m=>matchLineHtml(m)).join("");
+        inner += `<div class="row"><button class="btn secondary small" data-compute-pos="${wk.week}" type="button">Recalcular</button></div>`;
       }
+    } else {
+      inner += wk.matches.map(m=>matchLineHtml(m)).join("");
+    }
+    box.innerHTML = inner;
+    container.appendChild(box);
+  });
+  container.querySelectorAll("[data-compute-pos]").forEach(btn=>{
+    btn.addEventListener("click", ()=>{
+      computePositionRound(+btn.dataset.computePos);
+      renderSchedule();
+    });
+  });
+}
+function matchLineHtml(m){
+  const ta = teamById(m.teamA), tb = teamById(m.teamB);
+  if(!ta||!tb) return "";
+  return `<div class="row between" style="padding:5px 0"><span>${escapeHtml(ta.name)} <span class="muted">vs</span> ${escapeHtml(tb.name)}</span><span class="lanes-tag">Pistas ${m.lanes[0]}-${m.lanes[1]}</span></div>`;
+}
 
-      function generatePositionsPairs() {
-        const standings = currentGroupStandings();
-        let pairs = [];
-        if (weekPlan.positionsType === "within") {
-          GROUPS.forEach((g) => {
-            const ranked = standings[g].map((r) => r.teamId);
-            for (let i = 0; i < ranked.length; i += 2) {
-              if (ranked[i + 1]) pairs.push([ranked[i], ranked[i + 1]]);
+function computePositionRound(week){
+  const wk = state.schedule.find(w=>w.week===week);
+  if(!wk || wk.type!=="position") return;
+  const standings = computeTeamStandingsSnapshot(week); // ranking based on weeks before this one
+  const byGroup = {};
+  TEAM_GROUPS.forEach(g=> byGroup[g] = standings.filter(s=>teamById(s.teamId).group===g));
+
+  const matches = [];
+  if(wk.posType==="within"){
+    TEAM_GROUPS.forEach(g=>{
+      const list = byGroup[g];
+      for(let i=0;i<list.length-1;i+=2){
+        matches.push(makePositionMatch(list[i].teamId, list[i+1].teamId, matches.length));
+      }
+      if(list.length%2===1){
+        // odd one out sits as a bye-ish self note; pair with last available if any (rare edge case)
+      }
+    });
+  } else {
+    const oro = byGroup["Oro"], plata = byGroup["Plata"];
+    const len = Math.min(oro.length, plata.length);
+    for(let i=0;i<len;i++){
+      matches.push(makePositionMatch(oro[i].teamId, plata[i].teamId, matches.length));
+    }
+  }
+  wk.matches = matches;
+  saveState();
+}
+function makePositionMatch(teamA, teamB, i){
+  const lanes = [i*2+1, i*2+2];
+  return { id: uid("match"), teamA, teamB, lanes, lineups:{teamA:[],teamB:[]}, locked:false };
+}
+
+// =============================================================================
+// SCORES VIEW
+// =============================================================================
+function populateWeekSelect(){
+  const sel = document.getElementById("weekSelect");
+  const cur = sel.value;
+  sel.innerHTML = state.schedule.map(wk=>`<option value="${wk.week}">Semana ${wk.week}${wk.type==="position"?" (posiciones)":""}</option>`).join("");
+  if(cur && state.schedule.some(w=>String(w.week)===cur)) sel.value = cur;
+}
+document.getElementById("weekSelect").addEventListener("change", renderWeekMatches);
+
+function renderScoresTab(){
+  populateWeekSelect();
+  renderWeekMatches();
+}
+function renderWeekMatches(){
+  const container = document.getElementById("weekMatchesContainer");
+  container.innerHTML = "";
+  const weekNum = +document.getElementById("weekSelect").value;
+  const wk = state.schedule.find(w=>w.week===weekNum);
+  if(!wk){ container.innerHTML = '<div class="empty">Genera el calendario primero.</div>'; return; }
+  if(!wk.matches.length){ container.innerHTML = '<div class="empty">Esta semana aún no tiene emparejamientos (ronda de posiciones pendiente de calcular).</div>'; return; }
+
+  wk.matches.forEach(m=>container.appendChild(renderMatchScoreCard(wk, m)));
+}
+
+function ensureResult(matchId){
+  if(!state.results[matchId]){
+    state.results[matchId] = { games:{}, prontoPago:{teamA:false,teamB:false}, uniforme:{teamA:false,teamB:false}, saved:false };
+  }
+  return state.results[matchId];
+}
+
+function renderMatchScoreCard(wk, m){
+  const ta = teamById(m.teamA), tb = teamById(m.teamB);
+  const box = document.createElement("div");
+  box.className = "matchcard";
+  if(!ta||!tb){ box.innerHTML = "<div class='empty'>Equipo no encontrado.</div>"; return box; }
+
+  const result = ensureResult(m.id);
+  const teamSize = state.config.teamSize;
+
+  function lineupPicker(side, team){
+    const roster = bowlersOfTeam(team.id);
+    const current = m.lineups[side];
+    let html = `<div class="section-title" style="margin:10px 0 6px">${escapeHtml(team.name)} — line-up (${current.length}/${teamSize})</div><div class="row" style="flex-wrap:wrap">`;
+    roster.forEach(b=>{
+      const checked = current.includes(b.id);
+      html += `<label style="display:flex;align-items:center;gap:5px;background:var(--bg-card);padding:4px 9px;border-radius:6px;border:1px solid var(--border);font-weight:400">
+        <input type="checkbox" data-lineup="${side}" data-match="${m.id}" data-bowler="${b.id}" ${checked?"checked":""} ${(!checked && current.length>=teamSize)?"disabled":""}>
+        ${escapeHtml(b.name)} <span class="tag">${b.category}</span>
+      </label>`;
+    });
+    html += `</div>`;
+    return html;
+  }
+
+  function scoreRows(side, team){
+    const lineup = m.lineups[side];
+    if(!lineup.length) return '<div class="empty small">Selecciona el line-up arriba.</div>';
+    let html = `<div class="score-grid" style="font-weight:700;color:var(--text-muted);font-size:11px;text-transform:uppercase">
+      <div>Bowler</div><div>G1</div><div>G2</div><div>G3</div><div>Hcp/jgo</div><div>Total c/Hcp</div></div>`;
+    lineup.forEach(bid=>{
+      const b = bowlerById(bid);
+      if(!b) return;
+      const hc = handicapForWeek(b, wk.week);
+      const existing = (result.games[bid]||[{},{},{}]);
+      let seriesScratch=0, seriesTotal=0, anyBlind=false, complete=true;
+      const cells = [0,1,2].map(gi=>{
+        const g = existing[gi]||{};
+        const val = g.blind ? "b" : (g.score!=null?g.score:"");
+        if(g.score==null && !g.blind) complete=false;
+        if(g.blind){ anyBlind=true; seriesScratch += state.config.blindScore; }
+        else if(g.score!=null){ seriesScratch += g.score; seriesTotal += g.score+hc; }
+        return `<input type="text" maxlength="3" value="${val}" data-game="${gi}" data-bowler="${bid}" data-match="${m.id}" placeholder="o 'b'">`;
+      });
+      if(anyBlind) seriesTotal = seriesScratch; // blinds carry no handicap
+      html += `<div class="score-grid">
+        <div>${escapeHtml(b.name)} <span class="tag">${b.category}</span></div>
+        ${cells.join("")}
+        <div class="tag" style="text-align:center">${hc}</div>
+        <div style="font-weight:700">${complete||anyBlind? seriesTotal : "—"}</div>
+      </div>`;
+    });
+    return html;
+  }
+
+  box.innerHTML = `
+    <div class="row between">
+      <h4>${escapeHtml(ta.name)} <span class="muted">vs</span> ${escapeHtml(tb.name)} <span class="lanes-tag">Pistas ${m.lanes[0]}-${m.lanes[1]}</span></h4>
+      ${result.saved ? '<span class="tag" style="color:var(--good);border-color:var(--good)">Guardado</span>' : '<span class="tag">Sin guardar</span>'}
+    </div>
+    <div class="grid cols-2">
+      <div>${lineupPicker("teamA",ta)}<div data-scores="teamA">${scoreRows("teamA",ta)}</div></div>
+      <div>${lineupPicker("teamB",tb)}<div data-scores="teamB">${scoreRows("teamB",tb)}</div></div>
+    </div>
+    <div class="section-title">Puntos manuales</div>
+    <div class="grid cols-2">
+      <div class="row"><label style="display:flex;gap:6px;align-items:center;margin:0"><input type="checkbox" data-manual="prontoPago" data-side="teamA" data-match="${m.id}" ${result.prontoPago.teamA?"checked":""}> Pronto pago — ${escapeHtml(ta.name)}</label></div>
+      <div class="row"><label style="display:flex;gap:6px;align-items:center;margin:0"><input type="checkbox" data-manual="prontoPago" data-side="teamB" data-match="${m.id}" ${result.prontoPago.teamB?"checked":""}> Pronto pago — ${escapeHtml(tb.name)}</label></div>
+      <div class="row"><label style="display:flex;gap:6px;align-items:center;margin:0"><input type="checkbox" data-manual="uniforme" data-side="teamA" data-match="${m.id}" ${result.uniforme.teamA?"checked":""}> Uniforme — ${escapeHtml(ta.name)}</label></div>
+      <div class="row"><label style="display:flex;gap:6px;align-items:center;margin:0"><input type="checkbox" data-manual="uniforme" data-side="teamB" data-match="${m.id}" ${result.uniforme.teamB?"checked":""}> Uniforme — ${escapeHtml(tb.name)}</label></div>
+    </div>
+    <div class="row" style="margin-top:12px">
+      <button class="btn" data-save-match="${m.id}" type="button">Guardar puntajes de este partido</button>
+      <div class="muted small" data-match-points="${m.id}"></div>
+    </div>
+  `;
+
+  box.querySelectorAll("[data-lineup]").forEach(cb=>{
+    cb.addEventListener("change", ()=>{
+      const side = cb.dataset.lineup, bid = cb.dataset.bowler;
+      const arr = m.lineups[side];
+      if(cb.checked){ if(arr.length<teamSize) arr.push(bid); else { cb.checked=false; return; } }
+      else { m.lineups[side] = arr.filter(x=>x!==bid); }
+      saveState();
+      renderWeekMatches();
+    });
+  });
+  box.querySelectorAll("[data-manual]").forEach(cb=>{
+    cb.addEventListener("change", ()=>{
+      result[cb.dataset.manual][cb.dataset.side] = cb.checked;
+      saveState();
+    });
+  });
+  box.querySelector(`[data-save-match="${m.id}"]`).addEventListener("click", ()=>{
+    saveMatchScores(wk, m, box);
+  });
+
+  if(result.saved){
+    box.querySelector(`[data-match-points="${m.id}"]`).textContent = summarizeMatchPoints(wk, m);
+  }
+
+  return box;
+}
+
+function readCellValue(box, matchId, bowlerId, gi){
+  const el = box.querySelector(`input[data-game="${gi}"][data-bowler="${bowlerId}"][data-match="${matchId}"]`);
+  if(!el) return null;
+  const raw = el.value.trim();
+  if(raw==="") return null;
+  if(/^b$/i.test(raw)) return {blind:true, score:state.config.blindScore};
+  const num = parseInt(raw,10);
+  if(isNaN(num) || num<0 || num>300) return {invalid:true};
+  return {blind:false, score:num};
+}
+
+function saveMatchScores(wk, m, box){
+  const result = ensureResult(m.id);
+  let ok = true;
+  ["teamA","teamB"].forEach(side=>{
+    m.lineups[side].forEach(bid=>{
+      const b = bowlerById(bid);
+      const entries = [];
+      for(let gi=0; gi<GAMES_PER_MATCH; gi++){
+        const v = readCellValue(box, m.id, bid, gi);
+        if(v===null){ ok=false; return; }
+        if(v.invalid){ ok=false; alert("Puntaje inválido para "+b.name); return; }
+        entries.push(v);
+      }
+      if(entries.length!==GAMES_PER_MATCH) return;
+      result.games[bid] = entries;
+      // sync into bowler.games (remove any existing entries for this week first)
+      b.games = (b.games||[]).filter(g=>g.week!==wk.week);
+      entries.forEach(e=>{
+        b.games.push({week:wk.week, matchId:m.id, score:e.score, blind:e.blind});
+      });
+    });
+  });
+  if(!ok){ alert("Faltan puntajes por capturar (usa un número o 'b' para blind) en este partido."); return; }
+  result.saved = true;
+  saveState();
+  renderWeekMatches();
+}
+
+function summarizeMatchPoints(wk, m){
+  const pts = computeMatchPoints(wk, m);
+  const ta = teamById(m.teamA), tb = teamById(m.teamB);
+  return `Puntos: ${ta.name} ${pts.teamA.total} — ${tb.name} ${pts.teamB.total} (de ${MAX_POINTS_PER_MATCH} c/u)`;
+}
+
+// Computes points earned by both teams in a saved match.
+function computeMatchPoints(wk, m){
+  const result = state.results[m.id];
+  const out = { teamA:{game:[0,0,0],series:0,assist:0,pronto:0,uniforme:0,total:0,pinTotal:0,highGame:0},
+                teamB:{game:[0,0,0],series:0,assist:0,pronto:0,uniforme:0,total:0,pinTotal:0,highGame:0} };
+  if(!result || !result.saved) return out;
+
+  ["teamA","teamB"].forEach(side=>{
+    const lineup = m.lineups[side];
+    let anyBlind=false, allBowledAll3=true;
+    lineup.forEach(bid=>{
+      const games = result.games[bid]||[];
+      const b = bowlerById(bid);
+      const hc = handicapForWeek(b, wk.week);
+      if(games.length<GAMES_PER_MATCH) allBowledAll3=false;
+      games.forEach(g=>{ if(g.blind) anyBlind=true; });
+    });
+    out[side]._anyBlind = anyBlind;
+    out[side]._allBowledAll3 = allBowledAll3;
+  });
+
+  for(let gi=0; gi<GAMES_PER_MATCH; gi++){
+    let totA=0, totB=0;
+    ["teamA","teamB"].forEach(side=>{
+      const lineup = m.lineups[side];
+      let tot=0;
+      lineup.forEach(bid=>{
+        const b = bowlerById(bid);
+        const g = (result.games[bid]||[])[gi];
+        if(!g) return;
+        const hc = g.blind?0:handicapForWeek(b, wk.week);
+        tot += g.score + hc;
+      });
+      if(side==="teamA") totA=tot; else totB=tot;
+      out[side].highGame = Math.max(out[side].highGame, tot);
+    });
+    if(totA>totB) out.teamA.game[gi]=1;
+    else if(totB>totA) out.teamB.game[gi]=1;
+    else { out.teamA.game[gi]=0.5; out.teamB.game[gi]=0.5; }
+  }
+
+  let seriesA=0, seriesB=0;
+  ["teamA","teamB"].forEach(side=>{
+    const lineup = m.lineups[side];
+    let tot=0;
+    lineup.forEach(bid=>{
+      const b = bowlerById(bid);
+      const games = result.games[bid]||[];
+      games.forEach(g=>{ const hc = g.blind?0:handicapForWeek(b, wk.week); tot += g.score+hc; });
+    });
+    if(side==="teamA") seriesA=tot; else seriesB=tot;
+    out[side].pinTotal = tot;
+  });
+  if(seriesA>seriesB) out.teamA.series = POINTS_PER_SERIES;
+  else if(seriesB>seriesA) out.teamB.series = POINTS_PER_SERIES;
+  else { out.teamA.series = POINTS_PER_SERIES/2; out.teamB.series = POINTS_PER_SERIES/2; }
+
+  ["teamA","teamB"].forEach(side=>{
+    if(out[side]._allBowledAll3 && !out[side]._anyBlind && m.lineups[side].length===state.config.teamSize){
+      out[side].assist = POINTS_ASSISTANCE;
+    }
+    out[side].pronto = result.prontoPago[side] ? POINTS_PRONTO : 0;
+    out[side].uniforme = result.uniforme[side] ? POINTS_UNIFORME : 0;
+    out[side].total = out[side].game.reduce((a,b)=>a+b,0) + out[side].series + out[side].assist + out[side].pronto + out[side].uniforme;
+  });
+
+  return out;
+}
+
+// =============================================================================
+// STANDINGS
+// =============================================================================
+function computeTeamStandingsSnapshot(beforeWeek){
+  // aggregates all SAVED matches with week < beforeWeek
+  const acc = {};
+  state.teams.forEach(t=> acc[t.id] = {teamId:t.id, points:0, pinTotal:0, highGame:0, weeksPlayed:0, possiblePoints:0});
+  state.schedule.forEach(wk=>{
+    if(beforeWeek!=null && wk.week>=beforeWeek) return;
+    wk.matches.forEach(m=>{
+      const result = state.results[m.id];
+      if(!result || !result.saved) return;
+      const pts = computeMatchPoints(wk, m);
+      [["teamA",m.teamA],["teamB",m.teamB]].forEach(([side,teamId])=>{
+        if(!acc[teamId]) return;
+        acc[teamId].points += pts[side].total;
+        acc[teamId].pinTotal += pts[side].pinTotal;
+        acc[teamId].highGame = Math.max(acc[teamId].highGame, pts[side].highGame);
+        acc[teamId].possiblePoints += MAX_POINTS_PER_MATCH;
+      });
+    });
+  });
+  return Object.values(acc).sort((a,b)=> b.points-a.points || b.pinTotal-a.pinTotal || b.highGame-a.highGame);
+}
+
+function renderStandings(){
+  renderRecords();
+  renderTeamStandings();
+  renderIndividualStandings();
+}
+
+function renderTeamStandings(){
+  const container = document.getElementById("teamStandingsContainer");
+  container.innerHTML = "";
+  const snap = computeTeamStandingsSnapshot(null);
+  TEAM_GROUPS.forEach(group=>{
+    const rows = snap.filter(s=>teamById(s.teamId).group===group);
+    if(!rows.length) return;
+    const h = document.createElement("div");
+    h.className = "section-title";
+    h.textContent = "Grupo " + group;
+    container.appendChild(h);
+    const table = document.createElement("table");
+    table.innerHTML = `<thead><tr><th>#</th><th>Equipo</th><th>Puntos</th><th>Posibles</th><th>Pinos c/Hcp</th><th>Juego alto c/Hcp</th></tr></thead>
+      <tbody>${rows.map((r,i)=>`<tr><td>${i+1}</td><td>${escapeHtml(teamById(r.teamId).name)}</td><td><b>${fmt1(r.points)}</b></td><td class="muted">${r.possiblePoints}</td><td>${fmt0(r.pinTotal)}</td><td>${r.highGame}</td></tr>`).join("")}</tbody>`;
+    container.appendChild(table);
+  });
+  if(!snap.length) container.innerHTML = '<div class="empty">Aún no hay resultados guardados.</div>';
+}
+
+function renderIndividualStandings(){
+  const container = document.getElementById("individualStandingsContainer");
+  container.innerHTML = "";
+  const totalPossibleGamesFinal = state.config.numWeeks * GAMES_PER_MATCH;
+  const weeksCompleted = completedWeeks().size;
+  const weeksRemaining = Math.max(0, state.config.numWeeks - weeksCompleted);
+
+  CATEGORIES.forEach(cat=>{
+    const bowlers = state.bowlers.filter(b=>b.category===cat);
+    if(!bowlers.length) return;
+    const rows = bowlers.map(b=>{
+      const played = gamesPlayedCount(b);
+      const avg = scratchAverage(b);
+      const maxReachable = played + weeksRemaining*GAMES_PER_MATCH;
+      const canQualify = totalPossibleGamesFinal===0 ? true : (maxReachable/totalPossibleGamesFinal) >= 0.8;
+      return {b, played, avg: avg==null?0:avg, canQualify};
+    }).sort((x,y)=> y.avg-x.avg);
+
+    const qualifying = rows.filter(r=>r.canQualify);
+    const nonQualifying = rows.filter(r=>!r.canQualify);
+
+    const h = document.createElement("div");
+    h.className = "section-title";
+    h.textContent = "Categoría " + cat;
+    container.appendChild(h);
+
+    const table = document.createElement("table");
+    function rowHtml(r, i, dim){
+      const team = teamById(r.b.teamId);
+      return `<tr class="${dim?'dim':''}"><td>${i+1}</td><td>${escapeHtml(r.b.name)}</td><td>${team?escapeHtml(team.name):""}</td><td>${r.played}</td><td>${r.avg?fmt1(r.avg):"—"}</td><td>${currentHandicap(r.b)}</td></tr>`;
+    }
+    let body = qualifying.map((r,i)=>rowHtml(r,i,false)).join("");
+    if(nonQualifying.length){
+      body += `<tr class="qualify-split"><td colspan="6"><span>No alcanzan 80% de juegos posibles</span></td></tr>`;
+      body += nonQualifying.map((r,i)=>rowHtml(r, qualifying.length+i, true)).join("");
+    }
+    table.innerHTML = `<thead><tr><th>#</th><th>Bowler</th><th>Equipo</th><th>JJ</th><th>Prom.</th><th>Hcp</th></tr></thead><tbody>${body}</tbody>`;
+    container.appendChild(table);
+  });
+  if(!container.children.length) container.innerHTML = '<div class="empty">Aún no hay bowlers registrados.</div>';
+}
+
+function renderRecords(){
+  const rec = computeLeagueRecords();
+  const grid = document.getElementById("recordsGrid");
+  function box(label, val, who){
+    return `<div class="record-box"><div class="lbl">${label}</div><div class="val">${val}</div><div class="who">${who||"—"}</div></div>`;
+  }
+  grid.innerHTML =
+    box("High Team Game c/Hcp", rec.highTeamGame.value||"—", rec.highTeamGame.who) +
+    box("High Team Series c/Hcp", rec.highTeamSeries.value||"—", rec.highTeamSeries.who) +
+    box("High Ind. Game c/Hcp", rec.highIndGame.value||"—", rec.highIndGame.who) +
+    box("High Ind. Series c/Hcp", rec.highIndSeries.value||"—", rec.highIndSeries.who);
+
+  const honor = document.getElementById("honorLists");
+  let html = "";
+  if(rec.games300.length){
+    html += `<div class="honor"><b>Juegos de 300 (escratch)</b><br>` + rec.games300.map(g=>`Semana ${g.week}: ${escapeHtml(g.bowlerName)} (${escapeHtml(g.teamName)})`).join("<br>") + `</div>`;
+  }
+  if(rec.series800.length){
+    html += `<div class="honor"><b>Series 800+ (escratch)</b><br>` + rec.series800.map(s=>`Semana ${s.week}: ${escapeHtml(s.bowlerName)} (${escapeHtml(s.teamName)}) — ${s.total}`).join("<br>") + `</div>`;
+  }
+  if(!html) html = '<div class="empty">Aún no se han registrado juegos de 300 ni series de 800+.</div>';
+  honor.innerHTML = html;
+}
+
+function computeLeagueRecords(){
+  const rec = {
+    highTeamGame:{value:0,who:""}, highTeamSeries:{value:0,who:""},
+    highIndGame:{value:0,who:""}, highIndSeries:{value:0,who:""},
+    games300:[], series800:[]
+  };
+  state.schedule.forEach(wk=>{
+    wk.matches.forEach(m=>{
+      const result = state.results[m.id];
+      if(!result || !result.saved) return;
+      const ta = teamById(m.teamA), tb = teamById(m.teamB);
+      ["teamA","teamB"].forEach(side=>{
+        const team = side==="teamA"?ta:tb;
+        const lineup = m.lineups[side];
+        const gameTotals = [0,0,0];
+        let seriesTotal = 0;
+        lineup.forEach(bid=>{
+          const b = bowlerById(bid);
+          const games = result.games[bid]||[];
+          let bSeriesScratch=0, bSeriesHcp=0;
+          games.forEach((g,gi)=>{
+            const hc = g.blind?0:handicapForWeek(b, wk.week);
+            const withHcp = g.score+hc;
+            gameTotals[gi] += withHcp;
+            seriesTotal += withHcp;
+            bSeriesScratch += g.score;
+            bSeriesHcp += withHcp;
+            if(!g.blind && g.score===300){
+              rec.games300.push({week:wk.week, bowlerName:b.name, teamName:team.name});
+            }
+            if(withHcp > rec.highIndGame.value){
+              rec.highIndGame = {value:withHcp, who:`${b.name} (${team.name}) — Sem ${wk.week}`};
             }
           });
-        } else {
-          const oro = standings.Oro.map((r) => r.teamId);
-          const plata = standings.Plata.map((r) => r.teamId);
-          const len = Math.max(oro.length, plata.length);
-          for (let i = 0; i < len; i++) {
-            if (oro[i] && plata[i]) pairs.push([oro[i], plata[i]]);
+          if(games.length===GAMES_PER_MATCH){
+            if(bSeriesHcp > rec.highIndSeries.value){
+              rec.highIndSeries = {value:bSeriesHcp, who:`${b.name} (${team.name}) — Sem ${wk.week}`};
+            }
+            if(!games.some(g=>g.blind) && bSeriesScratch>=800){
+              rec.series800.push({week:wk.week, bowlerName:b.name, teamName:team.name, total:bSeriesScratch});
+            }
           }
+        });
+        gameTotals.forEach(gt=>{
+          if(gt>rec.highTeamGame.value) rec.highTeamGame = {value:gt, who:`${team.name} — Sem ${wk.week}`};
+        });
+        if(seriesTotal>rec.highTeamSeries.value) rec.highTeamSeries = {value:seriesTotal, who:`${team.name} — Sem ${wk.week}`};
+      });
+    });
+  });
+  rec.games300.sort((a,b)=>a.week-b.week);
+  rec.series800.sort((a,b)=>a.week-b.week);
+  return rec;
+}
+
+// =============================================================================
+// PDF EXPORT (2-page standings, ilusion-bowl-inspired palette)
+// =============================================================================
+document.getElementById("exportPdfBtn").addEventListener("click", exportStandingsPdf);
+function exportStandingsPdf(){
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit:"pt", format:"letter" });
+  const pink = [255,61,127], cyan=[23,233,221], gold=[255,193,69], dark=[18,22,31], textMuted=[110,118,133];
+
+  function header(title, sub){
+    doc.setFillColor(dark[0],dark[1],dark[2]);
+    doc.rect(0,0,612,54,"F");
+    doc.setTextColor(255,255,255);
+    doc.setFont("helvetica","bold");
+    doc.setFontSize(16);
+    doc.text("TORNEO ESTELAR", 30, 24);
+    doc.setFontSize(9);
+    doc.setTextColor(cyan[0],cyan[1],cyan[2]);
+    doc.text(title, 30, 40);
+    doc.setTextColor(150,150,150);
+    doc.setFontSize(8);
+    doc.text(sub, 400, 40, {align:"left"});
+  }
+
+  // PAGE 1: Team standings + records
+  header("Clasificación de Equipos", "Generado "+new Date().toLocaleDateString());
+  let y = 74;
+  const snap = computeTeamStandingsSnapshot(null);
+  TEAM_GROUPS.forEach(group=>{
+    const rows = snap.filter(s=>teamById(s.teamId).group===group);
+    if(!rows.length) return;
+    doc.setTextColor(20,20,20); doc.setFontSize(11); doc.setFont("helvetica","bold");
+    doc.text("Grupo "+group, 30, y); y+=6;
+    doc.autoTable({
+      startY:y, margin:{left:30,right:30},
+      styles:{fontSize:8, cellPadding:3},
+      headStyles:{fillColor:dark, textColor:255},
+      head:[["#","Equipo","Pts","Posibles","Pinos c/Hcp","Juego alto"]],
+      body: rows.map((r,i)=>[i+1, teamById(r.teamId).name, fmt1(r.points), r.possiblePoints, fmt0(r.pinTotal), r.highGame]),
+      theme:"striped"
+    });
+    y = doc.lastAutoTable.finalY + 16;
+  });
+
+  const rec = computeLeagueRecords();
+  doc.setFontSize(11); doc.setTextColor(20,20,20); doc.setFont("helvetica","bold");
+  doc.text("Récords de la Liga", 30, y); y+=8;
+  doc.autoTable({
+    startY:y, margin:{left:30,right:30}, styles:{fontSize:8,cellPadding:3},
+    headStyles:{fillColor:gold, textColor:30},
+    head:[["Récord","Valor","Quién / Semana"]],
+    body:[
+      ["High Team Game c/Hcp", rec.highTeamGame.value||"—", rec.highTeamGame.who],
+      ["High Team Series c/Hcp", rec.highTeamSeries.value||"—", rec.highTeamSeries.who],
+      ["High Ind. Game c/Hcp", rec.highIndGame.value||"—", rec.highIndGame.who],
+      ["High Ind. Series c/Hcp", rec.highIndSeries.value||"—", rec.highIndSeries.who],
+    ]
+  });
+  y = doc.lastAutoTable.finalY + 14;
+  if(rec.games300.length || rec.series800.length){
+    doc.autoTable({
+      startY:y, margin:{left:30,right:30}, styles:{fontSize:7.5,cellPadding:2.5},
+      headStyles:{fillColor:pink, textColor:255},
+      head:[["Honores","Detalle"]],
+      body:[
+        ...rec.games300.map(g=>["Juego 300", `Sem ${g.week} — ${g.bowlerName} (${g.teamName})`]),
+        ...rec.series800.map(s=>["Serie 800+", `Sem ${s.week} — ${s.bowlerName} (${s.teamName}) — ${s.total}`]),
+      ]
+    });
+  }
+
+  // PAGE 2: individual standings by category
+  doc.addPage();
+  header("Clasificación Individual", "Por categoría");
+  y = 74;
+  const totalPossibleGamesFinal = state.config.numWeeks * GAMES_PER_MATCH;
+  const weeksCompleted = completedWeeks().size;
+  const weeksRemaining = Math.max(0, state.config.numWeeks - weeksCompleted);
+  CATEGORIES.forEach(cat=>{
+    const bowlers = state.bowlers.filter(b=>b.category===cat);
+    if(!bowlers.length) return;
+    const rows = bowlers.map(b=>{
+      const played = gamesPlayedCount(b);
+      const avg = scratchAverage(b);
+      const maxReachable = played + weeksRemaining*GAMES_PER_MATCH;
+      const canQualify = totalPossibleGamesFinal===0?true:(maxReachable/totalPossibleGamesFinal)>=0.8;
+      return {b, played, avg: avg==null?0:avg, canQualify};
+    }).sort((x,y2)=>y2.avg-x.avg);
+    doc.setFontSize(10.5); doc.setTextColor(20,20,20); doc.setFont("helvetica","bold");
+    doc.text("Categoría "+cat, 30, y); y+=6;
+    doc.autoTable({
+      startY:y, margin:{left:30,right:30}, styles:{fontSize:7.5, cellPadding:2.5},
+      headStyles:{fillColor:dark, textColor:255},
+      head:[["#","Bowler","Equipo","JJ","Prom.","Hcp","Calif."]],
+      body: rows.map((r,i)=>[i+1, r.b.name, (teamById(r.b.teamId)||{}).name||"", r.played, r.avg?fmt1(r.avg):"—", currentHandicap(r.b), r.canQualify?"Sí":"No"]),
+      didParseCell: function(data){
+        if(data.section==="body"){
+          const rowData = rows[data.row.index];
+          if(rowData && !rowData.canQualify){ data.cell.styles.textColor = [160,160,160]; data.cell.styles.fontStyle="italic"; }
         }
-        return pairs;
-      }
+      },
+      theme:"striped"
+    });
+    y = doc.lastAutoTable.finalY + 12;
+  });
 
-      function ensureWeekInit() {
-        if (existingWeek) return existingWeek;
-        const pairs = weekPlan.type === "positions" ? generatePositionsPairs() : weekPlan.pairs;
-        const withLanes = assignLanes(pairs);
-        const matches = withLanes.map(({ pair, lanes }) => {
-          const [teamA, teamB] = pair;
-          const teamAObj = teamsById[teamA];
-          const teamBObj = teamsById[teamB];
-          const lineup = {};
-          const bowlerTeam = {};
-          [...teamAObj.bowlers, ...teamBObj.bowlers].forEach((bid) => {
-            lineup[bid] = ["", "", ""];
-            bowlerTeam[bid] = teamAObj.bowlers.includes(bid) ? teamA : teamB;
-          });
-          const handicapUsed = {};
-          [...teamAObj.bowlers, ...teamBObj.bowlers].forEach((bid) => {
-            const b = bowlersById[bid];
-            handicapUsed[bid] = b ? bowlerHandicapForWeek(b, league, week) : 0;
-          });
-          return {
-            id: uid("match"),
-            teamA,
-            teamB,
-            lanes,
-            lineup,
-            bowlerTeam,
-            handicapUsed,
-            prontoPago: { A: false, B: false },
-            uniforme: { A: false, B: false },
-            saved: false,
-          };
-        });
-        return { week, matches };
-      }
+  doc.save((state.meta.leagueName||"Torneo_Estelar").replace(/\s+/g,"_")+"_Standings.pdf");
+}
 
-      const [draft, setDraft] = useState(() => ensureWeekInit());
+// =============================================================================
+// DATA TAB: import / export / end-of-season
+// =============================================================================
+function renderDataTab(){
+  const box = document.getElementById("seasonStatus");
+  if(state.meta.ended){
+    box.style.display = "block";
+    box.innerHTML = `Temporada ${state.meta.seasonNumber} finalizada. ${state.meta.endedSummary||""}`;
+  } else {
+    box.style.display = "none";
+  }
+}
 
-      useEffect(() => {
-        setDraft(ensureWeekInit());
-      }, [week, league]);
+document.getElementById("exportJsonBtn").addEventListener("click", ()=>{
+  const blob = new Blob([JSON.stringify(state,null,2)], {type:"application/json"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = (state.meta.leagueName||"torneo_estelar").replace(/\s+/g,"_")+"_backup.json";
+  document.body.appendChild(a); a.click(); a.remove();
+  URL.revokeObjectURL(url);
+});
 
-      function updateMatch(matchId, patch) {
-        setDraft((d) => ({ ...d, matches: d.matches.map((m) => (m.id === matchId ? { ...m, ...patch } : m)) }));
-      }
-      function updateScore(matchId, bowlerId, gameIdx, value) {
-        setDraft((d) => ({
-          ...d,
-          matches: d.matches.map((m) => {
-            if (m.id !== matchId) return m;
-            const line = [...(m.lineup[bowlerId] || ["", "", ""])];
-            line[gameIdx] = value;
-            return { ...m, lineup: { ...m.lineup, [bowlerId]: line } };
-          }),
-        }));
-      }
-
-      function saveWeek() {
-        const savedMatches = draft.matches.map((m) => ({ ...m, saved: true }));
-        const weeklyResults = { ...league.weeklyResults, [week]: { week, matches: savedMatches } };
-        onChange({ ...league, weeklyResults });
-      }
-
-      if (!weekPlan) return <Panel title="Captura semanal">No hay semanas configuradas.</Panel>;
-
-      return (
-        <div>
-          <Panel
-            title={`Captura semanal — Semana ${week}`}
-            subtitle={
-              weekPlan.type === "positions"
-                ? `Ronda de posiciones (${weekPlan.positionsType === "within" ? "dentro de grupo" : "entre grupos"}), generada según la tabla vigente antes de esta semana.`
-                : "Introduce el marcador de cada bowler. Escribe B o b para marcar un blind (190, sin hándicap)."
-            }
-            right={
-              <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-                <select style={inputStyle} value={week} onChange={(e) => setWeek(Number(e.target.value))}>
-                  {plan.map((w) => (
-                    <option key={w.week} value={w.week}>
-                      Semana {w.week} {league.weeklyResults[w.week]?.matches?.every((m) => m.saved) ? "✓" : ""}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            }
-          >
-            {draft.matches.length === 0 && <div style={{ color: TOKENS.textFaint }}>No hay enfrentamientos esta semana.</div>}
-            {draft.matches.map((m) => (
-              <MatchEntry key={m.id} match={m} league={league} teamsById={teamsById} bowlersById={bowlersById} onUpdateMatch={(patch) => updateMatch(m.id, patch)} onUpdateScore={(bid, gi, v) => updateScore(m.id, bid, gi, v)} />
-            ))}
-            <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 10 }}>
-              <Btn onClick={saveWeek}>Guardar semana {week}</Btn>
-            </div>
-          </Panel>
-        </div>
-      );
+document.getElementById("importJsonInput").addEventListener("change", (e)=>{
+  const file = e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = ()=>{
+    try{
+      const parsed = JSON.parse(reader.result);
+      if(!confirm("Esto reemplazará todos los datos actuales con el archivo importado. ¿Continuar?")) return;
+      state = migrateState(parsed);
+      saveState();
+      alert("Torneo importado correctamente.");
+      activateTab("setup");
+      renderSetup();
+    }catch(err){
+      alert("No se pudo leer el archivo: "+err.message);
     }
+  };
+  reader.readAsText(file);
+  e.target.value = "";
+});
 
-    function MatchEntry({ match, league, teamsById, bowlersById, onUpdateMatch, onUpdateScore }) {
-      const teamA = teamsById[match.teamA];
-      const teamB = teamsById[match.teamB];
-      const live = { ...match };
-      const totalsA = teamGameTotals(live, "A");
-      const totalsB = teamGameTotals(live, "B");
-      const { points } = computeMatchPoints(live);
-
-      return (
-        <div style={{ border: `1px solid ${TOKENS.line}`, borderRadius: 6, padding: 14, marginBottom: 16 }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
-            <div style={{ fontFamily: TOKENS.fontDisplay, fontSize: 15, color: TOKENS.text }}>
-              {teamA.name} <span style={{ color: TOKENS.textFaint }}>vs</span> {teamB.name}
-            </div>
-            <div style={{ fontSize: 11.5, color: TOKENS.textDim }}>Carriles {match.lanes[0]}-{match.lanes[1]}</div>
-          </div>
-
-          {[teamA, teamB].map((team, sideIdx) => {
-            const side = sideIdx === 0 ? "A" : "B";
-            return (
-              <div key={team.id} style={{ marginBottom: 8 }}>
-                <div style={{ fontSize: 12, color: TOKENS.goldSoft, fontFamily: TOKENS.fontDisplay, marginBottom: 4 }}>{team.name}</div>
-                <table>
-                  <thead>
-                    <tr>
-                      <th style={thStyle}>Bowler</th>
-                      <th style={thStyle}>Hcp</th>
-                      <th style={thStyle}>J1</th>
-                      <th style={thStyle}>J2</th>
-                      <th style={thStyle}>J3</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {team.bowlers.map((bid) => {
-                      const b = bowlersById[bid];
-                      if (!b) return null;
-                      const line = match.lineup[bid] || ["", "", ""];
-                      return (
-                        <tr key={bid}>
-                          <td style={tdStyle}>{b.name}</td>
-                          <td style={{ ...tdStyle, color: TOKENS.textDim }}>{match.handicapUsed[bid] ?? 0}</td>
-                          {[0, 1, 2].map((gi) => (
-                            <td key={gi} style={tdStyle}>
-                              <input
-                                style={{ ...inputStyle, width: 56 }}
-                                value={line[gi]}
-                                placeholder="—"
-                                onChange={(e) => onUpdateScore(bid, gi, e.target.value)}
-                              />
-                            </td>
-                          ))}
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            );
-          })}
-
-          <div style={{ display: "flex", gap: 20, alignItems: "center", marginTop: 8, fontSize: 12.5, flexWrap: "wrap" }}>
-            <div style={{ color: TOKENS.textDim }}>
-              Juegos c/hcp: <b style={{ color: TOKENS.text }}>{totalsA.gameTotals.join(" / ")}</b> vs <b style={{ color: TOKENS.text }}>{totalsB.gameTotals.join(" / ")}</b>
-            </div>
-            <div style={{ color: TOKENS.textDim }}>
-              Serie c/hcp: <b style={{ color: TOKENS.text }}>{totalsA.seriesTotal}</b> vs <b style={{ color: TOKENS.text }}>{totalsB.seriesTotal}</b>
-            </div>
-            <div style={{ color: TOKENS.gold }}>
-              Puntos: {points.A} — {points.B}
-            </div>
-          </div>
-
-          <div style={{ display: "flex", gap: 24, marginTop: 8 }}>
-            {["A", "B"].map((side) => (
-              <div key={side} style={{ display: "flex", gap: 12, fontSize: 12, color: TOKENS.textDim }}>
-                <label style={{ display: "flex", gap: 4, alignItems: "center" }}>
-                  <input
-                    type="checkbox"
-                    checked={!!match.prontoPago[side]}
-                    onChange={(e) => onUpdateMatch({ prontoPago: { ...match.prontoPago, [side]: e.target.checked } })}
-                  />
-                  Pronto pago {side === "A" ? teamA.name : teamB.name}
-                </label>
-                <label style={{ display: "flex", gap: 4, alignItems: "center" }}>
-                  <input
-                    type="checkbox"
-                    checked={!!match.uniforme[side]}
-                    onChange={(e) => onUpdateMatch({ uniforme: { ...match.uniforme, [side]: e.target.checked } })}
-                  />
-                  Uniforme {side === "A" ? teamA.name : teamB.name}
-                </label>
-              </div>
-            ))}
-          </div>
-        </div>
-      );
+document.getElementById("endTournamentBtn").addEventListener("click", ()=>{
+  if(!confirm("Esto finalizará la temporada y preparará a cada bowler para la próxima (congelando promedios o marcándolos como nueva entrada). ¿Continuar?")) return;
+  let frozen=0, reset=0;
+  state.bowlers.forEach(b=>{
+    const played = gamesPlayedCount(b);
+    if(played>=12){
+      const avg = scratchAverage(b);
+      b.carryover = { enteringAverage: avg==null?null:Math.round(avg*10)/10, isNewEntry:false };
+      frozen++;
+    } else {
+      b.carryover = { enteringAverage:null, isNewEntry:true };
+      reset++;
     }
+  });
+  state.meta.ended = true;
+  state.meta.endedSummary = `${frozen} bowler(s) con promedio congelado (9 juegos), ${reset} bowler(s) tratados como nueva entrada la próxima temporada.`;
+  saveState();
+  renderDataTab();
+  alert("Temporada finalizada. "+state.meta.endedSummary);
+});
 
-    /* ============================================================================
-       STANDINGS VIEW
-       ============================================================================ */
+document.getElementById("startSeasonBtn").addEventListener("click", ()=>{
+  if(!state.meta.ended){ alert("Primero finaliza la temporada actual."); return; }
+  if(!confirm("Se iniciará una nueva temporada reutilizando equipos y bowlers. El calendario y los puntajes se reiniciarán. ¿Continuar?")) return;
+  state.bowlers.forEach(b=>{
+    const co = b.carryover || {enteringAverage:null,isNewEntry:true};
+    b.enteringAverage = co.enteringAverage;
+    b.games = [];
+  });
+  state.schedule = [];
+  state.results = {};
+  state.meta.seasonNumber += 1;
+  state.meta.ended = false;
+  state.meta.endedSummary = null;
+  saveState();
+  renderDataTab();
+  activateTab("roster");
+  alert("Nueva temporada "+state.meta.seasonNumber+" lista. Genera el calendario cuando quieras.");
+});
 
-    function currentWeekNumber(league) {
-      const weeks = Object.keys(league.weeklyResults).map(Number);
-      if (weeks.length === 0) return 0;
-      return Math.max(...weeks);
-    }
-
-    function StandingsView({ league }) {
-      const teamStandings = useMemo(() => computeTeamStandings(league), [league]);
-      const cw = currentWeekNumber(league);
-      const indiv = useMemo(() => computeIndividualStandings(league, cw), [league, cw]);
-      const records = useMemo(() => computeLeagueRecords(league), [league]);
-      const bowlersById = Object.fromEntries(league.bowlers.map((b) => [b.id, b]));
-      const teamsById = Object.fromEntries(league.teams.map((t) => [t.id, t]));
-
-      function printStandings() {
-        window.print();
-      }
-
-      return (
-        <div>
-          <div className="no-print" style={{ display: "flex", justifyContent: "flex-end", marginBottom: 12 }}>
-            <Btn onClick={printStandings}>Imprimir / exportar PDF</Btn>
-          </div>
-
-          <div className="print-page">
-            <Panel title="Récords de la liga" subtitle="Actualizado a la fecha con hándicap incluido salvo donde se indique.">
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12, marginBottom: 14 }}>
-                <RecordCard label="High Game equipo (c/hcp)" value={records.highTeamGame} render={(r) => `${r.value} — ${r.name} (sem. ${r.week})`} />
-                <RecordCard label="High Series equipo (c/hcp)" value={records.highTeamSeries} render={(r) => `${r.value} — ${r.name} (sem. ${r.week})`} />
-                <RecordCard label="High Game individual (c/hcp)" value={records.highIndGame} render={(r) => `${r.value} — ${r.name} (sem. ${r.week})`} />
-                <RecordCard label="High Series individual (c/hcp)" value={records.highIndSeries} render={(r) => `${r.value} — ${r.name} (sem. ${r.week})`} />
-              </div>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
-                <div>
-                  <div style={{ fontFamily: TOKENS.fontDisplay, fontSize: 13, color: TOKENS.gold, marginBottom: 6 }}>Juegos de 300 (scratch)</div>
-                  {records.scratch300.length === 0 && <div style={{ color: TOKENS.textFaint, fontSize: 12.5 }}>Ninguno todavía</div>}
-                  {records.scratch300.map((r, i) => (
-                    <div key={i} style={{ fontSize: 12.5, color: TOKENS.text }}>
-                      {r.name} — semana {r.week}
-                    </div>
-                  ))}
-                </div>
-                <div>
-                  <div style={{ fontFamily: TOKENS.fontDisplay, fontSize: 13, color: TOKENS.gold, marginBottom: 6 }}>Series 800+ (scratch)</div>
-                  {records.scratch800.length === 0 && <div style={{ color: TOKENS.textFaint, fontSize: 12.5 }}>Ninguna todavía</div>}
-                  {records.scratch800.map((r, i) => (
-                    <div key={i} style={{ fontSize: 12.5, color: TOKENS.text }}>
-                      {r.name} — {r.series} (semana {r.week})
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </Panel>
-
-            <Panel title="Posiciones de equipos">
-              {GROUPS.map((g) => (
-                <div key={g} style={{ marginBottom: 16 }}>
-                  <div style={{ fontFamily: TOKENS.fontDisplay, fontSize: 14, color: TOKENS.coral, marginBottom: 6 }}>Grupo {g}</div>
-                  <table>
-                    <thead>
-                      <tr>
-                        {["#", "Equipo", "Puntos", "Pts. posibles", "Pinos c/hcp", "High game c/hcp"].map((h) => (
-                          <th key={h} style={thStyle}>
-                            {h}
-                          </th>
-                        ))}
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {teamStandings[g].map((row, i) => (
-                        <tr key={row.teamId} style={{ borderBottom: `1px solid ${TOKENS.line}` }}>
-                          <td style={tdStyle}>{i + 1}</td>
-                          <td style={tdStyle}>{row.name}</td>
-                          <td style={{ ...tdStyle, color: TOKENS.gold }}>{row.points}</td>
-                          <td style={tdStyle}>{row.possiblePoints}</td>
-                          <td style={tdStyle}>{row.pinfall}</td>
-                          <td style={tdStyle}>{row.highGame}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              ))}
-            </Panel>
-          </div>
-
-          <div>
-            <Panel title="Posiciones individuales" subtitle="Por categoría. Bowlers que ya no pueden matemáticamente completar el 80% de juegos posibles aparecen atenuados, debajo de quienes sí califican.">
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
-                {CATEGORIES.map((c) => (
-                  <div key={c}>
-                    <div style={{ fontFamily: TOKENS.fontDisplay, fontSize: 14, color: TOKENS.teal, marginBottom: 6 }}>{c}</div>
-                    <table>
-                      <thead>
-                        <tr>
-                          {["#", "Bowler", "Equipo", "Juegos", "Prom."].map((h) => (
-                            <th key={h} style={thStyle}>
-                              {h}
-                            </th>
-                          ))}
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {indiv.byCategory[c].map((row, i) => (
-                          <tr key={row.bowlerId} style={{ borderBottom: `1px solid ${TOKENS.line}`, opacity: row.qualifies ? 1 : 0.4 }}>
-                            <td style={tdStyle}>{i + 1}</td>
-                            <td style={tdStyle}>{row.name}</td>
-                            <td style={{ ...tdStyle, fontSize: 11.5, color: TOKENS.textDim }}>{teamsById[row.teamId]?.name}</td>
-                            <td style={tdStyle}>{row.gamesPlayed}</td>
-                            <td style={tdStyle}>{row.average ? row.average.toFixed(1) : "—"}</td>
-                          </tr>
-                        ))}
-                        {indiv.byCategory[c].length === 0 && (
-                          <tr>
-                            <td style={tdStyle} colSpan={5}>
-                              <span style={{ color: TOKENS.textFaint }}>Sin bowlers</span>
-                            </td>
-                          </tr>
-                        )}
-                      </tbody>
-                    </table>
-                  </div>
-                ))}
-              </div>
-              <div style={{ fontSize: 11, color: TOKENS.textFaint, marginTop: 10 }}>
-                Requisito: {indiv.requiredGames} de {indiv.totalPossible} juegos posibles (80%).
-              </div>
-            </Panel>
-          </div>
-        </div>
-      );
-    }
-
-    function RecordCard({ label, value, render }) {
-      return (
-        <div style={{ border: `1px solid ${TOKENS.line}`, borderRadius: 6, padding: 12 }}>
-          <div style={{ fontSize: 11, color: TOKENS.textDim, marginBottom: 4 }}>{label}</div>
-          <div style={{ fontFamily: TOKENS.fontDisplay, fontSize: 15, color: TOKENS.gold }}>{value ? render(value) : "—"}</div>
-        </div>
-      );
-    }
-
-    /* ============================================================================
-       RECORDS VIEW
-       ============================================================================ */
-
-    function RecordsView({ league }) {
-      const records = useMemo(() => computeLeagueRecords(league), [league]);
-      return (
-        <Panel title="Récords de la liga" subtitle="Vista detallada de marcas individuales y de equipo.">
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 14 }}>
-            <RecordCard label="High Game equipo (c/hcp)" value={records.highTeamGame} render={(r) => `${r.value} — ${r.name} (sem. ${r.week})`} />
-            <RecordCard label="High Series equipo (c/hcp)" value={records.highTeamSeries} render={(r) => `${r.value} — ${r.name} (sem. ${r.week})`} />
-            <RecordCard label="High Game individual (c/hcp)" value={records.highIndGame} render={(r) => `${r.value} — ${r.name} (sem. ${r.week})`} />
-            <RecordCard label="High Series individual (c/hcp)" value={records.highIndSeries} render={(r) => `${r.value} — ${r.name} (sem. ${r.week})`} />
-          </div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, marginTop: 20 }}>
-            <div>
-              <div style={{ fontFamily: TOKENS.fontDisplay, fontSize: 14, color: TOKENS.gold, marginBottom: 8 }}>Juegos de 300 (honor, scratch)</div>
-              {records.scratch300.length === 0 && <div style={{ color: TOKENS.textFaint, fontSize: 13 }}>Ninguno todavía</div>}
-              {records.scratch300.map((r, i) => (
-                <div key={i} style={{ fontSize: 13, padding: "4px 0", borderBottom: `1px solid ${TOKENS.line}` }}>
-                  {r.name} — semana {r.week}
-                </div>
-              ))}
-            </div>
-            <div>
-              <div style={{ fontFamily: TOKENS.fontDisplay, fontSize: 14, color: TOKENS.gold, marginBottom: 8 }}>Series 800+ (honor, scratch)</div>
-              {records.scratch800.length === 0 && <div style={{ color: TOKENS.textFaint, fontSize: 13 }}>Ninguna todavía</div>}
-              {records.scratch800.map((r, i) => (
-                <div key={i} style={{ fontSize: 13, padding: "4px 0", borderBottom: `1px solid ${TOKENS.line}` }}>
-                  {r.name} — {r.series} (semana {r.week})
-                </div>
-              ))}
-            </div>
-          </div>
-        </Panel>
-      );
-    }
-
-    /* ============================================================================
-       DATA VIEW
-       ============================================================================ */
-
-    function DataView({ league, onChange }) {
-      const [importError, setImportError] = useState("");
-      const cw = currentWeekNumber(league);
-
-      function exportFile() {
-        const blob = new Blob([JSON.stringify(league, null, 2)], { type: "application/json" });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        const safeName = (league.name || "torneo").toLowerCase().replace(/[^a-z0-9]+/g, "-");
-        a.download = `${safeName}-respaldo-semana-${cw}.json`;
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-        URL.revokeObjectURL(url);
-      }
-
-      function importFile(e) {
-        const file = e.target.files[0];
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = () => {
-          try {
-            const parsed = JSON.parse(reader.result);
-            if (!parsed.teams || !parsed.bowlers) throw new Error("Archivo inválido");
-            setImportError("");
-            onChange(parsed);
-          } catch (err) {
-            setImportError("No se pudo leer el archivo. Verifica que sea un respaldo válido de Torneo Estelar.");
-          }
-        };
-        reader.readAsText(file);
-        e.target.value = "";
-      }
-
-      function endTournament() {
-        const nextBowlers = league.bowlers.map((b) => {
-          const stats = bowlerCareerStats(b, league);
-          if (stats.gamesPlayed >= 12) {
-            return { ...b, enteringAverage: Math.floor(stats.average), frozenFromSeason: league.seasonLabel || true };
-          }
-          return { ...b, enteringAverage: null };
-        });
-        onChange({ ...league, bowlers: nextBowlers, ended: true });
-      }
-
-      function startNewSeasonFromEnded() {
-        onChange({ ...league, weeklyResults: {}, ended: false, setupComplete: true, seasonLabel: "" });
-      }
-
-      return (
-        <div>
-          <Panel title="Respaldo del torneo" subtitle="Exporta un archivo de respaldo cada semana. Si se pierde la información, impórtalo para restaurar todo.">
-            <div style={{ display: "flex", gap: 12 }}>
-              <Btn onClick={exportFile}>Exportar archivo del torneo</Btn>
-              <label style={{ display: "inline-block" }}>
-                <input type="file" accept="application/json" onChange={importFile} style={{ display: "none" }} id="import-input" />
-                <Btn variant="ghost" onClick={() => document.getElementById("import-input").click()}>
-                  Importar archivo del torneo
-                </Btn>
-              </label>
-            </div>
-            {importError && <div style={{ color: TOKENS.coral, fontSize: 12.5, marginTop: 8 }}>{importError}</div>}
-          </Panel>
-
-          <Panel
-            title="Finalizar temporada"
-            subtitle="Al finalizar: bowlers con 12+ juegos congelan su promedio como nuevo promedio de entrada (fijo 9 juegos la próxima temporada). Bowlers con menos de 12 juegos se tratan como nueva entrada."
-          >
-            {!league.ended ? (
-              <Btn variant="danger" onClick={endTournament}>
-                Finalizar temporada
-              </Btn>
-            ) : (
-              <div>
-                <div style={{ color: TOKENS.teal, fontSize: 13, marginBottom: 10 }}>Esta temporada ha finalizado. Los promedios de entrada ya se actualizaron.</div>
-                <Btn onClick={startNewSeasonFromEnded}>Iniciar nueva temporada con este roster</Btn>
-              </div>
-            )}
-          </Panel>
-        </div>
-      );
-    }
-
-    const root = ReactDOM.createRoot(document.getElementById("root"));
-    root.render(<App />);
-  </script>
+// =============================================================================
+// INIT
+// =============================================================================
+function init(){
+  document.querySelector(".brandtext .name").textContent = (state.meta.leagueName||"Torneo Estelar").toUpperCase();
+  activateTab("setup");
+}
+init();
+</script>
 </body>
 </html>
