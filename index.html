@@ -139,6 +139,22 @@ footer.app{text-align:center;color:var(--text-muted);font-size:11.5px;padding:30
 .stepper div.done{background:var(--cyan);}
 ::-webkit-scrollbar{width:9px;height:9px;}
 ::-webkit-scrollbar-thumb{background:#232938;border-radius:6px;}
+.role-badge{font-size:11px;font-weight:700;padding:5px 10px;border-radius:20px;border:1px solid var(--border);color:var(--text-muted);}
+.role-badge.admin{color:var(--gold);border-color:var(--gold);background:rgba(255,193,69,.08);}
+.modal-overlay{
+  display:none;position:fixed;inset:0;background:rgba(4,5,8,.65);z-index:200;
+  align-items:center;justify-content:center;padding:20px;
+}
+.modal-overlay.open{display:flex;}
+.modal-box{
+  background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);
+  padding:22px;max-width:340px;width:100%;box-shadow:var(--shadow);
+}
+.readonly-row{display:grid;grid-template-columns:1.6fr repeat(3,60px) 80px 90px;gap:6px;align-items:center;padding:5px 0;font-size:13px;}
+@media(max-width:760px){.readonly-row{grid-template-columns:1fr;}}
+.pts-breakdown{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px;}
+.pts-breakdown span{background:var(--bg-card);border:1px solid var(--border);border-radius:6px;padding:4px 9px;font-size:11.5px;color:var(--text-muted);}
+.pts-breakdown b{color:var(--text);}
 </style>
 </head>
 <body>
@@ -162,15 +178,22 @@ footer.app{text-align:center;color:var(--text-muted);font-size:11.5px;padding:30
     <div class="name">TORNEO ESTELAR</div>
     <div class="sub">GESTIÓN DE LIGA · BOLICHE</div>
   </div>
-  <nav class="tabs" id="tabsNav">
-    <button data-tab="setup">Configuración</button>
-    <button data-tab="roster">Equipos y Jugadores</button>
-    <button data-tab="schedule">Calendario</button>
-    <button data-tab="scores">Puntajes</button>
-    <button data-tab="standings">Tabla de Posiciones</button>
-    <button data-tab="data">Datos / Temporada</button>
-  </nav>
+  <nav class="tabs" id="tabsNav"></nav>
+  <div class="row" style="margin-left:8px" id="authArea"></div>
 </header>
+
+<div class="modal-overlay" id="loginOverlay">
+  <div class="modal-box">
+    <h3 style="margin-bottom:4px">Acceso de Administrador</h3>
+    <div class="hint" style="margin-bottom:14px">Ingresa la contraseña para gestionar configuración, equipos, puntajes y datos de la liga.</div>
+    <div class="field"><label>Contraseña</label><input type="password" id="loginPassword" autocomplete="current-password"></div>
+    <div class="row" style="justify-content:flex-end;margin-top:10px">
+      <button class="btn secondary small" id="loginCancelBtn" type="button">Cancelar</button>
+      <button class="btn small" id="loginSubmitBtn" type="button">Entrar</button>
+    </div>
+    <div class="warn small" id="loginError" style="display:none;margin-top:10px">Contraseña incorrecta.</div>
+  </div>
+</div>
 
 <main class="wrap">
 
@@ -218,7 +241,7 @@ footer.app{text-align:center;color:var(--text-muted);font-size:11.5px;padding:30
     <div class="card">
       <div class="row between">
         <h2>Calendario (Round Robin)</h2>
-        <div class="row">
+        <div class="row" id="scheduleAdminActions">
           <button class="btn secondary small" id="regenScheduleBtn" type="button">Generar / Regenerar calendario</button>
         </div>
       </div>
@@ -237,6 +260,20 @@ footer.app{text-align:center;color:var(--text-muted);font-size:11.5px;padding:30
         </div>
       </div>
       <div id="weekMatchesContainer"></div>
+    </div>
+  </section>
+
+  <!-- HISTORIAL (read-only session lookup, for audit) -->
+  <section class="view" id="view-historial">
+    <div class="card">
+      <div class="row between">
+        <h2>Historial de Sesiones</h2>
+        <div class="field" style="min-width:220px;margin:0">
+          <select id="histWeekSelect"></select>
+        </div>
+      </div>
+      <div class="hint">Consulta de solo lectura de los puntajes capturados en una sesión anterior — útil para auditoría de capitanes.</div>
+      <div id="histContainer"></div>
     </div>
   </section>
 
@@ -360,7 +397,7 @@ function maxHandicapFor(category, gender){
 }
 function handicapFromAverage(category, gender, average){
   const max = maxHandicapFor(category, gender);
-  const raw = 0.9 * (225 - average);
+  const raw = 0.9 * (220 - average);
   return Math.max(0, Math.min(max, Math.round(raw)));
 }
 
@@ -453,6 +490,69 @@ function findMatch(matchId){
 }
 
 // ---------------------------------------------------------------------------
+// ROLES / ACCESS
+// ---------------------------------------------------------------------------
+const ADMIN_PASSWORD = "B0l1ch3b1ll4r";
+const ROLE_KEY = "torneoEstelarRole_v1";
+let currentRole = sessionStorage.getItem(ROLE_KEY) || "user";
+
+const TAB_DEFS = [
+  {tab:"setup", label:"Configuración", roles:["admin"]},
+  {tab:"roster", label:"Equipos y Jugadores", roles:["admin"]},
+  {tab:"schedule", label:"Calendario", roles:["admin","user"]},
+  {tab:"scores", label:"Puntajes", roles:["admin"]},
+  {tab:"standings", label:"Tabla de Posiciones", roles:["admin","user"]},
+  {tab:"historial", label:"Historial de Sesiones", roles:["admin","user"]},
+  {tab:"data", label:"Datos / Temporada", roles:["admin"]},
+];
+
+function tabsForRole(role){ return TAB_DEFS.filter(t=>t.roles.includes(role)); }
+function defaultTabForRole(role){ return role==="admin" ? "setup" : "standings"; }
+
+function renderNav(){
+  const nav = document.getElementById("tabsNav");
+  nav.innerHTML = tabsForRole(currentRole).map(t=>`<button data-tab="${t.tab}">${t.label}</button>`).join("");
+  const auth = document.getElementById("authArea");
+  if(currentRole==="admin"){
+    auth.innerHTML = `<span class="role-badge admin">Modo Admin</span><button class="btn secondary small" id="logoutBtn" type="button">Cerrar sesión</button>`;
+    document.getElementById("logoutBtn").addEventListener("click", logout);
+  } else {
+    auth.innerHTML = `<span class="role-badge">Vista de Usuario</span><button class="btn secondary small" id="loginBtn" type="button">Acceso Admin</button>`;
+    document.getElementById("loginBtn").addEventListener("click", openLoginModal);
+  }
+}
+function openLoginModal(){
+  document.getElementById("loginOverlay").classList.add("open");
+  document.getElementById("loginError").style.display = "none";
+  const pw = document.getElementById("loginPassword");
+  pw.value = "";
+  setTimeout(()=>pw.focus(), 30);
+}
+function closeLoginModal(){ document.getElementById("loginOverlay").classList.remove("open"); }
+function attemptLogin(){
+  const pw = document.getElementById("loginPassword").value;
+  if(pw===ADMIN_PASSWORD){
+    currentRole = "admin";
+    sessionStorage.setItem(ROLE_KEY, "admin");
+    closeLoginModal();
+    renderNav();
+    activateTab(defaultTabForRole("admin"));
+  } else {
+    document.getElementById("loginError").style.display = "block";
+  }
+}
+function logout(){
+  currentRole = "user";
+  sessionStorage.setItem(ROLE_KEY, "user");
+  renderNav();
+  activateTab(defaultTabForRole("user"));
+}
+document.getElementById("loginSubmitBtn").addEventListener("click", attemptLogin);
+document.getElementById("loginCancelBtn").addEventListener("click", closeLoginModal);
+document.getElementById("loginPassword").addEventListener("keydown", e=>{ if(e.key==="Enter") attemptLogin(); });
+document.getElementById("loginOverlay").addEventListener("click", e=>{ if(e.target.id==="loginOverlay") closeLoginModal(); });
+
+// ---------------------------------------------------------------------------
 // TABS
 // ---------------------------------------------------------------------------
 document.getElementById("tabsNav").addEventListener("click", e=>{
@@ -461,12 +561,15 @@ document.getElementById("tabsNav").addEventListener("click", e=>{
   activateTab(btn.dataset.tab);
 });
 function activateTab(tab){
+  const allowed = tabsForRole(currentRole).map(t=>t.tab);
+  if(!allowed.includes(tab)) tab = defaultTabForRole(currentRole);
   document.querySelectorAll("nav.tabs button").forEach(b=>b.classList.toggle("active", b.dataset.tab===tab));
   document.querySelectorAll(".view").forEach(v=>v.classList.toggle("active", v.id==="view-"+tab));
   if(tab==="roster") renderRoster();
   if(tab==="schedule") renderSchedule();
   if(tab==="scores") renderScoresTab();
   if(tab==="standings") renderStandings();
+  if(tab==="historial") renderHistorialTab();
   if(tab==="data") renderDataTab();
   if(tab==="setup") renderSetup();
 }
@@ -713,6 +816,10 @@ document.getElementById("regenScheduleBtn").addEventListener("click", ()=>{
 });
 
 function renderSchedule(){
+  const isAdmin = currentRole==="admin";
+  const adminActions = document.getElementById("scheduleAdminActions");
+  if(adminActions) adminActions.style.display = isAdmin ? "" : "none";
+
   const container = document.getElementById("scheduleContainer");
   container.innerHTML = "";
   if(!state.schedule.length){
@@ -725,10 +832,10 @@ function renderSchedule(){
     let inner = `<h4>Semana ${wk.week} ${wk.type==="position" ? `<span class="tag">Ronda de posiciones (${wk.posType==="within"?"dentro del grupo":"entre grupos"})</span>` : ""}</h4>`;
     if(wk.type==="position"){
       if(!wk.matches.length){
-        inner += `<div class="row"><button class="btn secondary small" data-compute-pos="${wk.week}" type="button">Calcular emparejamientos con la clasificación actual</button></div>`;
+        inner += isAdmin ? `<div class="row"><button class="btn secondary small" data-compute-pos="${wk.week}" type="button">Calcular emparejamientos con la clasificación actual</button></div>` : `<div class="empty small">Emparejamientos aún no calculados.</div>`;
       } else {
         inner += wk.matches.map(m=>matchLineHtml(m)).join("");
-        inner += `<div class="row"><button class="btn secondary small" data-compute-pos="${wk.week}" type="button">Recalcular</button></div>`;
+        if(isAdmin) inner += `<div class="row"><button class="btn secondary small" data-compute-pos="${wk.week}" type="button">Recalcular</button></div>`;
       }
     } else {
       inner += wk.matches.map(m=>matchLineHtml(m)).join("");
@@ -741,6 +848,89 @@ function renderSchedule(){
       computePositionRound(+btn.dataset.computePos);
       renderSchedule();
     });
+  });
+}
+
+// =============================================================================
+// HISTORIAL (read-only session/audit view)
+// =============================================================================
+function renderHistorialTab(){
+  const sel = document.getElementById("histWeekSelect");
+  const cur = sel.value;
+  sel.innerHTML = state.schedule.map(wk=>{
+    const anySaved = wk.matches.some(m=> (state.results[m.id]||{}).saved);
+    return `<option value="${wk.week}">Semana ${wk.week}${wk.type==="position"?" (posiciones)":""}${anySaved?"":" — sin capturar"}</option>`;
+  }).join("");
+  if(cur && state.schedule.some(w=>String(w.week)===cur)) sel.value = cur;
+  renderHistorialWeek();
+}
+document.getElementById("histWeekSelect").addEventListener("change", renderHistorialWeek);
+
+function renderHistorialWeek(){
+  const container = document.getElementById("histContainer");
+  container.innerHTML = "";
+  const weekNum = +document.getElementById("histWeekSelect").value;
+  const wk = state.schedule.find(w=>w.week===weekNum);
+  if(!wk){ container.innerHTML = '<div class="empty">No hay semanas en el calendario todavía.</div>'; return; }
+  if(!wk.matches.length){ container.innerHTML = '<div class="empty">Esta semana no tiene emparejamientos definidos.</div>'; return; }
+
+  wk.matches.forEach(m=>{
+    const ta = teamById(m.teamA), tb = teamById(m.teamB);
+    if(!ta||!tb) return;
+    const result = state.results[m.id];
+    const box = document.createElement("div");
+    box.className = "matchcard";
+    if(!result || !result.saved){
+      box.innerHTML = `<h4>${escapeHtml(ta.name)} <span class="muted">vs</span> ${escapeHtml(tb.name)} <span class="lanes-tag">Pistas ${m.lanes[0]}-${m.lanes[1]}</span></h4><div class="empty small">Puntajes aún no capturados para este partido.</div>`;
+      container.appendChild(box);
+      return;
+    }
+    const pts = computeMatchPoints(wk, m);
+    function sideTable(side, team){
+      const lineup = m.lineups[side];
+      if(!lineup.length) return '<div class="empty small">Sin line-up registrado.</div>';
+      let html = `<div class="readonly-row" style="font-weight:700;color:var(--text-muted);font-size:11px;text-transform:uppercase">
+        <div>Bowler</div><div>G1</div><div>G2</div><div>G3</div><div>Hcp/jgo</div><div>Total c/Hcp</div></div>`;
+      lineup.forEach(bid=>{
+        const b = bowlerById(bid);
+        if(!b) return;
+        const games = result.games[bid]||[];
+        const hc = handicapForWeek(b, wk.week);
+        let total=0, anyBlind=false;
+        const cells = [0,1,2].map(gi=>{
+          const g = games[gi];
+          if(!g) return "—";
+          if(g.blind){ anyBlind=true; total+=g.score; return "B"; }
+          total += g.score+hc; return g.score;
+        });
+        if(anyBlind) total = games.reduce((s,g)=>s+g.score,0);
+        html += `<div class="readonly-row">
+          <div>${escapeHtml(b.name)} <span class="tag">${b.category}</span></div>
+          <div>${cells[0]}</div><div>${cells[1]}</div><div>${cells[2]}</div>
+          <div>${hc}</div><div style="font-weight:700">${total}</div>
+        </div>`;
+      });
+      return html;
+    }
+    box.innerHTML = `
+      <div class="row between">
+        <h4>${escapeHtml(ta.name)} <span class="muted">vs</span> ${escapeHtml(tb.name)} <span class="lanes-tag">Pistas ${m.lanes[0]}-${m.lanes[1]}</span></h4>
+        <span class="tag" style="color:var(--good);border-color:var(--good)">Guardado</span>
+      </div>
+      <div class="grid cols-2">
+        <div><div class="section-title" style="margin:6px 0">${escapeHtml(ta.name)}</div>${sideTable("teamA",ta)}</div>
+        <div><div class="section-title" style="margin:6px 0">${escapeHtml(tb.name)}</div>${sideTable("teamB",tb)}</div>
+      </div>
+      <div class="pts-breakdown">
+        <span>Juegos: <b>${pts.teamA.game.reduce((a,b)=>a+b,0)}</b> — <b>${pts.teamB.game.reduce((a,b)=>a+b,0)}</b></span>
+        <span>Serie: <b>${pts.teamA.series}</b> — <b>${pts.teamB.series}</b></span>
+        <span>Asistencia: <b>${pts.teamA.assist}</b> — <b>${pts.teamB.assist}</b></span>
+        <span>Pronto pago: <b>${pts.teamA.pronto}</b> — <b>${pts.teamB.pronto}</b></span>
+        <span>Uniforme: <b>${pts.teamA.uniforme}</b> — <b>${pts.teamB.uniforme}</b></span>
+        <span>Total: <b>${pts.teamA.total}</b> — <b>${pts.teamB.total}</b> (de ${MAX_POINTS_PER_MATCH} c/u)</span>
+      </div>
+    `;
+    container.appendChild(box);
   });
 }
 function matchLineHtml(m){
@@ -1401,7 +1591,8 @@ document.getElementById("startSeasonBtn").addEventListener("click", ()=>{
 // =============================================================================
 function init(){
   document.querySelector(".brandtext .name").textContent = (state.meta.leagueName||"Torneo Estelar").toUpperCase();
-  activateTab("setup");
+  renderNav();
+  activateTab(defaultTabForRole(currentRole));
 }
 init();
 </script>
