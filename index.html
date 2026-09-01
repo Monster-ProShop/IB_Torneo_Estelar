@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Torneo Estelar | League Manager</title>
+    <!-- jsPDF for exporting Standings -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header class="app-header">
+        <div class="logo-container">
+            <!-- Placeholder for your minimalist Chrome Pin / Navy Orbit Logo -->
+            <div class="logo-placeholder"></div>
+            <h1>TORNEO ESTELAR</h1>
+        </div>
+        <nav>
+            <button onclick="switchTab('teams')">Teams & Bowlers</button>
+            <button onclick="switchTab('schedule')">Schedule & Scores</button>
+            <button onclick="switchTab('standings')">Standings</button>
+        </nav>
+        <div class="header-actions">
+            <button class="btn-export" onclick="exportTournament()">Export Backup (.json)</button>
+            <label class="btn-import">
+                Import Backup
+                <input type="file" id="import-file" accept=".json" onchange="importTournament(event)" style="display: none;">
+            </label>
+            <button class="btn-danger" onclick="endTournament()">End Tournament</button>
+        </div>
+    </header>
+
+    <main id="app-content">
+        <!-- Dynamic content will be injected here by app.js -->
+        <section id="dashboard" class="tab-content active">
+            <h2>League Dashboard</h2>
+            <div class="honor-board">
+                <h3>Honor Scores & Highlights</h3>
+                <div id="honor-scores-list">
+                    <!-- 300s and 800s will populate here -->
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script src="app.js"></script>
+</body>
+</html>
