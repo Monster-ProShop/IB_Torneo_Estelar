@@ -350,12 +350,267 @@ const MAX_POINTS_PER_MATCH = (POINTS_PER_GAME*GAMES_PER_MATCH)+POINTS_PER_SERIES
 
 const STORAGE_KEY = "torneoEstelarState_v1";
 
+// Roster source: ESTELAR ED30 FECHA 7.pdf (team standings and player categories).
+// The repeated J159 row is included once; unnamed J046/J114 rows are omitted.
+// J160 is omitted pending clarification: the PDF assigns him two teams/categories.
+// Only roster fields are seeded. The PDF does not specify gender or entering averages.
+const INITIAL_TEAMS = [
+  {
+    "id": "E01",
+    "name": "TIBURONES",
+    "group": "Plata"
+  },
+  {
+    "id": "E02",
+    "name": "ARRE UNO MAMON",
+    "group": "Oro"
+  },
+  {
+    "id": "E03",
+    "name": "PERRONES",
+    "group": "Plata"
+  },
+  {
+    "id": "E04",
+    "name": "CERO 8",
+    "group": "Oro"
+  },
+  {
+    "id": "E05",
+    "name": "IB SPORT BAR",
+    "group": "Plata"
+  },
+  {
+    "id": "E06",
+    "name": "THE GOODFACE",
+    "group": "Oro"
+  },
+  {
+    "id": "E07",
+    "name": "ATOM",
+    "group": "Oro"
+  },
+  {
+    "id": "E08",
+    "name": "BOWLING BROTHERS",
+    "group": "Plata"
+  },
+  {
+    "id": "E09",
+    "name": "AB BIENES RAICES",
+    "group": "Plata"
+  },
+  {
+    "id": "E10",
+    "name": "CENTURIONES",
+    "group": "Plata"
+  },
+  {
+    "id": "E11",
+    "name": "PEAKY BLINDERS BOWLING",
+    "group": "Plata"
+  },
+  {
+    "id": "E12",
+    "name": "REAL MANDIL",
+    "group": "Plata"
+  },
+  {
+    "id": "E13",
+    "name": "ALV",
+    "group": "Plata"
+  },
+  {
+    "id": "E14",
+    "name": "800 PLUS",
+    "group": "Oro"
+  },
+  {
+    "id": "E15",
+    "name": "REFRIGERACION MAR",
+    "group": "Plata"
+  },
+  {
+    "id": "E16",
+    "name": "PUERCOS PERO NO TROMPUDOS",
+    "group": "Oro"
+  },
+  {
+    "id": "E17",
+    "name": "SUICIDE SQUAD",
+    "group": "Oro"
+  },
+  {
+    "id": "E18",
+    "name": "FRAGSA",
+    "group": "Oro"
+  },
+  {
+    "id": "E19",
+    "name": "MCLAREN",
+    "group": "Oro"
+  },
+  {
+    "id": "E20",
+    "name": "ILUSION BOWL",
+    "group": "Oro"
+  }
+];
+const INITIAL_BOWLERS = [
+  {"id":"J001","name":"RUDY DAVALOS","teamId":"E06","category":"Bronze"},
+  {"id":"J002","name":"RICARDO BUENROSTRO SR","teamId":"E06","category":"Niquel"},
+  {"id":"J003","name":"JONATHAN BUENROSTRO","teamId":"E06","category":"Plata"},
+  {"id":"J004","name":"RICHI DAVALOS","teamId":"E06","category":"Bronze"},
+  {"id":"J005","name":"ARMANDO BUENROSTRO","teamId":"E06","category":"Bronze"},
+  {"id":"J006","name":"ALEX NAVARRO","teamId":"E02","category":"Bronze"},
+  {"id":"J007","name":"JORGE NENE MUÑIZ","teamId":"E06","category":"Plata"},
+  {"id":"J008","name":"ANGEL DAVALOS","teamId":"E06","category":"Niquel"},
+  {"id":"J009","name":"EKTHOR PARRA","teamId":"E14","category":"Bronze"},
+  {"id":"J010","name":"DANY MORA","teamId":"E14","category":"Plata"},
+  {"id":"J011","name":"LUIS ORDAZ","teamId":"E14","category":"Bronze"},
+  {"id":"J012","name":"LUIS DANIEL VARELA","teamId":"E14","category":"Oro"},
+  {"id":"J013","name":"DAVID MORA","teamId":"E14","category":"Bronze"},
+  {"id":"J017","name":"ALEX VILLANUEVA","teamId":"E05","category":"Bronze"},
+  {"id":"J018","name":"JOSE LUIS MUÑOZ","teamId":"E05","category":"Oro"},
+  {"id":"J019","name":"MARIO GARCIA","teamId":"E05","category":"Plata"},
+  {"id":"J020","name":"PEPE CUERVO","teamId":"E05","category":"Plata"},
+  {"id":"J021","name":"EDUARDO IBARRA","teamId":"E20","category":"Plata"},
+  {"id":"J022","name":"MARCO MUÑIZ","teamId":"E05","category":"Niquel"},
+  {"id":"J023","name":"JOSE LUIS MUÑOZ SR","teamId":"E05","category":"Niquel"},
+  {"id":"J024","name":"GABRIEL MUÑOZ","teamId":"E05","category":"Niquel"},
+  {"id":"J025","name":"EDUARDO LEGORRETA","teamId":"E20","category":"Oro"},
+  {"id":"J026","name":"MAX BUENROSTRO JR","teamId":"E20","category":"Bronze"},
+  {"id":"J027","name":"EMMANUEL BUENROSTRO","teamId":"E20","category":"Oro"},
+  {"id":"J028","name":"MAX BUENROSTRO SR","teamId":"E20","category":"Bronze"},
+  {"id":"J029","name":"ANDRES SANDOVAL","teamId":"E19","category":"Plata"},
+  {"id":"J031","name":"CARLOS LOZA","teamId":"E09","category":"Bronze"},
+  {"id":"J033","name":"DAVID MORA","teamId":"E10","category":"Niquel"},
+  {"id":"J034","name":"ENRIQUE ESQUIVEL","teamId":"E10","category":"Bronze"},
+  {"id":"J035","name":"DANIEL MORALES","teamId":"E10","category":"Bronze"},
+  {"id":"J036","name":"JUAN IGNACIO VAZQUEZ","teamId":"E10","category":"Niquel"},
+  {"id":"J037","name":"SERGIO ESQUIVEL","teamId":"E10","category":"Niquel"},
+  {"id":"J038","name":"CARLOS HERNANDEZ","teamId":"E10","category":"Bronze"},
+  {"id":"J040","name":"CARLOS MONTES","teamId":"E10","category":"Niquel"},
+  {"id":"J042","name":"MUNDO PINEDA","teamId":"E13","category":"Bronze"},
+  {"id":"J043","name":"NOE MONTES","teamId":"E13","category":"Plata"},
+  {"id":"J044","name":"FERNANDO COSTA","teamId":"E04","category":"Oro"},
+  {"id":"J045","name":"GUSTAVO ROMAN","teamId":"E13","category":"Oro"},
+  {"id":"J047","name":"CIPRIANO PINEDA","teamId":"E13","category":"Bronze"},
+  {"id":"J048","name":"JOSE LUIS MONTES","teamId":"E13","category":"Niquel"},
+  {"id":"J049","name":"SANDY MENDEZ","teamId":"E19","category":"Niquel"},
+  {"id":"J050","name":"RICARDO BUENROSTRO JR","teamId":"E09","category":"Bronze"},
+  {"id":"J051","name":"GUSTAVO MENDEZ","teamId":"E19","category":"Bronze"},
+  {"id":"J052","name":"BETO MORENO","teamId":"E19","category":"Bronze"},
+  {"id":"J053","name":"RICARDO OCHOA","teamId":"E19","category":"Niquel"},
+  {"id":"J054","name":"JONATHAN MORENO","teamId":"E19","category":"Niquel"},
+  {"id":"J055","name":"ALEX ROMAN","teamId":"E19","category":"Plata"},
+  {"id":"J057","name":"POLO CUERVO SR","teamId":"E03","category":"Bronze"},
+  {"id":"J059","name":"EMILIO GALINDO","teamId":"E03","category":"Plata"},
+  {"id":"J060","name":"VICENTE SAAVEDRA","teamId":"E03","category":"Bronze"},
+  {"id":"J061","name":"KURT MALLER","teamId":"E03","category":"Niquel"},
+  {"id":"J062","name":"ALFREDO VELAZQUEZ","teamId":"E03","category":"Niquel"},
+  {"id":"J063","name":"RICARDO MUÑOZ","teamId":"E03","category":"Bronze"},
+  {"id":"J065","name":"JAIR MORENO","teamId":"E17","category":"Bronze"},
+  {"id":"J066","name":"HECTOR HERRERA","teamId":"E17","category":"Oro"},
+  {"id":"J067","name":"MARTIN SANCHEZ","teamId":"E17","category":"Oro"},
+  {"id":"J068","name":"REGINA MORENO","teamId":"E17","category":"Bronze"},
+  {"id":"J069","name":"CALEB BARRAGAN","teamId":"E17","category":"Oro"},
+  {"id":"J070","name":"ANDRES CARRASCO","teamId":"E17","category":"Plata"},
+  {"id":"J071","name":"CARLOS (PAJARO)","teamId":"E17","category":"Niquel"},
+  {"id":"J072","name":"AZAEL BARRAGAN","teamId":"E17","category":"Plata"},
+  {"id":"J074","name":"EDGAR RIOS","teamId":"E09","category":"Bronze"},
+  {"id":"J076","name":"SIMON MARTINEZ","teamId":"E09","category":"Oro"},
+  {"id":"J077","name":"RONALD MAGALLON","teamId":"E09","category":"Bronze"},
+  {"id":"J078","name":"ALAN VIRGEN","teamId":"E09","category":"Niquel"},
+  {"id":"J079","name":"RAUL MENDEZ","teamId":"E03","category":"Bronze"},
+  {"id":"J080","name":"LUIS GUILLERMO ESTRADA","teamId":"E09","category":"Plata"},
+  {"id":"J081","name":"RAFAEL HERNANDEZ","teamId":"E12","category":"Bronze"},
+  {"id":"J082","name":"NOE DE LA VEGA","teamId":"E12","category":"Niquel"},
+  {"id":"J083","name":"VICTOR ANGUIANO","teamId":"E12","category":"Niquel"},
+  {"id":"J084","name":"FELIPE RENTERIA","teamId":"E12","category":"Niquel"},
+  {"id":"J085","name":"VICTOR MONTUFAR","teamId":"E12","category":"Bronze"},
+  {"id":"J086","name":"EDUARDO MUÑOZ","teamId":"E12","category":"Niquel"},
+  {"id":"J087","name":"LUIS ANGUIANO","teamId":"E12","category":"Niquel"},
+  {"id":"J091","name":"JOSE LUIS MARTINEZ","teamId":"E16","category":"Oro"},
+  {"id":"J092","name":"OCTAVIO FLORES","teamId":"E16","category":"Plata"},
+  {"id":"J094","name":"OSVALDO TORRES","teamId":"E16","category":"Oro"},
+  {"id":"J095","name":"ARMANDO VIZCARRA","teamId":"E16","category":"Bronze"},
+  {"id":"J096","name":"JORGE JIMENEZ","teamId":"E16","category":"Plata"},
+  {"id":"J097","name":"MARIANO SANDOVAL","teamId":"E15","category":"Niquel"},
+  {"id":"J098","name":"BETO SANDOVAL JR","teamId":"E15","category":"Plata"},
+  {"id":"J099","name":"JOSE LUIS GOMEZ","teamId":"E15","category":"Bronze"},
+  {"id":"J100","name":"ROBERTO SANDOVAL","teamId":"E15","category":"Plata"},
+  {"id":"J101","name":"CARLOS POMAR","teamId":"E15","category":"Bronze"},
+  {"id":"J102","name":"IRVING SANDOVAL","teamId":"E15","category":"Bronze"},
+  {"id":"J103","name":"LUIS GERARDO HERNANDEZ","teamId":"E15","category":"Niquel"},
+  {"id":"J105","name":"FRANK GUARRO","teamId":"E18","category":"Bronze"},
+  {"id":"J106","name":"RODRIGO GUARRO","teamId":"E18","category":"Plata"},
+  {"id":"J108","name":"DANIEL MARTINEZ","teamId":"E18","category":"Oro"},
+  {"id":"J109","name":"JAIME RUIZ","teamId":"E18","category":"Plata"},
+  {"id":"J111","name":"MARCELO MAGRASSI","teamId":"E18","category":"Oro"},
+  {"id":"J112","name":"CARLOS SERROS DIABLO","teamId":"E14","category":"Plata"},
+  {"id":"J113","name":"SEBAS PEREZ","teamId":"E07","category":"Niquel"},
+  {"id":"J115","name":"ALONSO PEREZ","teamId":"E07","category":"Plata"},
+  {"id":"J116","name":"ALBERTO ORTEGA","teamId":"E07","category":"Niquel"},
+  {"id":"J117","name":"RODRIGO ORTEGA","teamId":"E07","category":"Plata"},
+  {"id":"J118","name":"RICARDO PEREZ","teamId":"E07","category":"Plata"},
+  {"id":"J119","name":"NACHO AGUILAR","teamId":"E07","category":"Bronze"},
+  {"id":"J120","name":"MANUEL ALVARADO","teamId":"E07","category":"Oro"},
+  {"id":"J121","name":"JORGE GODOY","teamId":"E08","category":"Bronze"},
+  {"id":"J122","name":"ALEX PADILLA","teamId":"E08","category":"Niquel"},
+  {"id":"J123","name":"JUAN MANUEL PADILLA","teamId":"E08","category":"Niquel"},
+  {"id":"J124","name":"CESAR GODOY","teamId":"E08","category":"Niquel"},
+  {"id":"J125","name":"EFRAIN FERNANDEZ","teamId":"E08","category":"Bronze"},
+  {"id":"J127","name":"MONTSE GISPERT","teamId":"E08","category":"Niquel"},
+  {"id":"J128","name":"JAVIER BARRAZA","teamId":"E08","category":"Bronze"},
+  {"id":"J129","name":"JAIR CONTRERAS","teamId":"E02","category":"Niquel"},
+  {"id":"J130","name":"ALEX RODRIGUEZ","teamId":"E11","category":"Niquel"},
+  {"id":"J132","name":"FIDE","teamId":"E11","category":"Niquel"},
+  {"id":"J133","name":"JAVIER RODRIGUEZ","teamId":"E11","category":"Niquel"},
+  {"id":"J134","name":"TOÑO DE ALBA","teamId":"E18","category":"Oro"},
+  {"id":"J136","name":"SERGIO ESPARZA","teamId":"E11","category":"Bronze"},
+  {"id":"J137","name":"EMMANUEL LOPEZ SERVIN","teamId":"E02","category":"Niquel"},
+  {"id":"J138","name":"LALO RODRIGUEZ","teamId":"E02","category":"Bronze"},
+  {"id":"J139","name":"FRANCISCO PAREDES SR","teamId":"E02","category":"Niquel"},
+  {"id":"J140","name":"BENJAMIN RAMIREZ","teamId":"E02","category":"Plata"},
+  {"id":"J141","name":"BETO FLORES","teamId":"E19","category":"Plata"},
+  {"id":"J142","name":"ALVARO VARELA","teamId":"E01","category":"Plata"},
+  {"id":"J143","name":"VICTOR LOPEZ","teamId":"E02","category":"Niquel"},
+  {"id":"J145","name":"POLO CUERVO JR","teamId":"E10","category":"Bronze"},
+  {"id":"J146","name":"RICHIE GARCIA JR","teamId":"E04","category":"Plata"},
+  {"id":"J147","name":"ARI TISHMAN","teamId":"E04","category":"Plata"},
+  {"id":"J148","name":"HUGO GUERRERO","teamId":"E04","category":"Niquel"},
+  {"id":"J151","name":"RICARDO GARCIA","teamId":"E04","category":"Plata"},
+  {"id":"J152","name":"MARIO HERRERA","teamId":"E04","category":"Oro"},
+  {"id":"J153","name":"SERGIO ZAMORA","teamId":"E01","category":"Niquel"},
+  {"id":"J154","name":"ROBERTO BARRON","teamId":"E01","category":"Plata"},
+  {"id":"J155","name":"JESUS HERNANDEZ","teamId":"E01","category":"Niquel"},
+  {"id":"J156","name":"EDY GUZMAN","teamId":"E11","category":"Niquel"},
+  {"id":"J157","name":"DAVID GUZMAN","teamId":"E01","category":"Niquel"},
+  {"id":"J158","name":"PACO OROZCO","teamId":"E01","category":"Plata"},
+  {"id":"J159","name":"MIGEL ANGEL PEREZ","teamId":"E01","category":"Bronze"},
+  {"id":"J161","name":"MISAEL DIEZ","teamId":"E16","category":"Plata"},
+  {"id":"J162","name":"JORGE KIRSCHNER","teamId":"E11","category":"Niquel"},
+  {"id":"J163","name":"ENRIQUE SARMIENTO","teamId":"E20","category":"Plata"},
+  {"id":"J164","name":"ROBERTO ALBARRAN","teamId":"E20","category":"Niquel"},
+  {"id":"J165","name":"JAVIER LARIOS","teamId":"E09","category":"Bronze"},
+  {"id":"J166","name":"ANDREA CUERVO","teamId":"E16","category":"Bronze"},
+  {"id":"J167","name":"EMMANUEL MEDINA","teamId":"E13","category":"Bronze"},
+  {"id":"J168","name":"OSKAR","teamId":"E13","category":"Bronze"},
+  {"id":"J170","name":"MANUEL","teamId":"E04","category":"Bronze"},
+  {"id":"J171","name":"HECTOR VAZQUEZ","teamId":"E14","category":"Plata"},
+  {"id":"J172","name":"SAUL KIRSCHNER","teamId":"E11","category":"Plata"},
+  {"id":"J173","name":"ALEX PEREZ","teamId":"E01","category":"Bronze"},
+  {"id":"J174","name":"YEIPI","teamId":"E04","category":"Niquel"},
+  {"id":"J176","name":"JAVIER DIAZ","teamId":"E18","category":"Oro"}
+];
+
 function defaultState(){
   return {
     meta:{ leagueName:"Torneo Estelar", seasonNumber:1, ended:false, endedSummary:null },
-    config:{ numTeams:8, teamSize:4, numWeeks:14, positionRounds:[], blindScore:190, configured:false },
-    teams:[],
-    bowlers:[],
+    config:{ numTeams:INITIAL_TEAMS.length, teamSize:4, numWeeks:14, positionRounds:[], blindScore:190, configured:false },
+    teams:INITIAL_TEAMS.map(t=>({...t})),
+    bowlers:INITIAL_BOWLERS.map(b=>({...b, gender:"M", enteringAverage:null, games:[]})),
     schedule:[], // [{week, type:'regular'|'position', posType:'within'|'between', matches:[{id,teamA,teamB,lanes:[a,b],lineups:{teamA:[ids],teamB:[ids]},locked}]}]
     results:{}, // matchId -> {games:{bowlerId:[{score,blind}...]}, prontoPago:{teamA,teamB}, uniforme:{teamA,teamB}, saved}
     nextIds:{ team:1, bowler:1, match:1 }
@@ -373,11 +628,19 @@ function loadState(){
 }
 function migrateState(s){
   const d = defaultState();
-  return Object.assign(d, s, {
+  const migrated = Object.assign(d, s, {
     meta: Object.assign(d.meta, s.meta||{}),
     config: Object.assign(d.config, s.config||{}),
     nextIds: Object.assign(d.nextIds, s.nextIds||{})
   });
+  // Seed only an unused installation; saved rosters and tournament history take precedence.
+  if(!migrated.config.configured && !migrated.teams.length && !migrated.bowlers.length &&
+     !migrated.schedule.length && !Object.keys(migrated.results).length){
+    migrated.teams = INITIAL_TEAMS.map(t=>({...t}));
+    migrated.bowlers = INITIAL_BOWLERS.map(b=>({...b, gender:"M", enteringAverage:null, games:[]}));
+    migrated.config.numTeams = INITIAL_TEAMS.length;
+  }
+  return migrated;
 }
 function saveState(){
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
